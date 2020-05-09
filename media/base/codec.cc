@@ -52,8 +52,10 @@ bool IsSameCodecSpecific(const std::string& name1,
   if (either_name_matches(kH264CodecName))
     return webrtc::H264::IsSameH264Profile(params1, params2) &&
            IsSameH264PacketizationMode(params1, params2);
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   if (either_name_matches(kVp9CodecName))
     return webrtc::IsSameVP9Profile(params1, params2);
+#endif
   return true;
 }
 

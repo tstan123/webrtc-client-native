@@ -8,6 +8,7 @@
 
 import("../../../webrtc.gni")
 
+if (rtc_build_ap) {
 rtc_library("aec3") {
   visibility = [ "*" ]
   configs += [ "..:apm_debug_dump" ]
@@ -146,6 +147,7 @@ rtc_library("aec3") {
     "../utility:ooura_fft",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+}
 }
 
 if (rtc_include_tests) {

@@ -17,7 +17,9 @@
 
 #include "api/audio/audio_mixer.h"
 #include "api/audio_codecs/audio_decoder_factory.h"
+#ifdef WEBRTC_BUILD_ENCODER
 #include "api/audio_codecs/audio_encoder_factory.h"
+#endif
 #include "api/rtp_parameters.h"
 #include "api/task_queue/task_queue_factory.h"
 #include "api/transport/bitrate_settings.h"
@@ -41,7 +43,9 @@ struct MediaEngineDependencies {
 
   webrtc::TaskQueueFactory* task_queue_factory = nullptr;
   rtc::scoped_refptr<webrtc::AudioDeviceModule> adm;
+#ifdef WEBRTC_BUILD_ENCODER
   rtc::scoped_refptr<webrtc::AudioEncoderFactory> audio_encoder_factory;
+#endif
   rtc::scoped_refptr<webrtc::AudioDecoderFactory> audio_decoder_factory;
   rtc::scoped_refptr<webrtc::AudioMixer> audio_mixer;
   rtc::scoped_refptr<webrtc::AudioProcessing> audio_processing;

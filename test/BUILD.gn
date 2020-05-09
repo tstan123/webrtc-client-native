@@ -653,10 +653,6 @@ rtc_library("fake_video_codecs") {
     "fake_decoder.h",
     "fake_encoder.cc",
     "fake_encoder.h",
-    "fake_vp8_decoder.cc",
-    "fake_vp8_decoder.h",
-    "fake_vp8_encoder.cc",
-    "fake_vp8_encoder.h",
   ]
   deps = [
     "../api:fec_controller_api",
@@ -668,14 +664,11 @@ rtc_library("fake_video_codecs") {
     "../api/video:video_frame_i420",
     "../api/video:video_rtp_headers",
     "../api/video_codecs:video_codecs_api",
-    "../api/video_codecs:vp8_temporal_layers_factory",
     "../common_video",
     "../modules:module_api",
     "../modules/video_coding:codec_globals_headers",
     "../modules/video_coding:video_codec_interface",
     "../modules/video_coding:video_coding_utility",
-    "../modules/video_coding:webrtc_vp8",
-    "../modules/video_coding:webrtc_vp9",
     "../rtc_base:checks",
     "../rtc_base:rtc_base_approved",
     "../rtc_base:rtc_task_queue",
@@ -683,6 +676,19 @@ rtc_library("fake_video_codecs") {
     "../system_wrappers",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_builtin_codec) {
+    sources += [
+      "fake_vp8_decoder.cc",
+      "fake_vp8_decoder.h",
+      "fake_vp8_encoder.cc",
+      "fake_vp8_encoder.h",
+    ]
+    deps += [
+      "../api/video_codecs:vp8_temporal_layers_factory",
+      "../modules/video_coding:webrtc_vp8",
+      "../modules/video_coding:webrtc_vp9",
+    ]
+}
 }
 
 rtc_library("null_transport") {
@@ -757,7 +763,6 @@ rtc_library("test_common") {
     "../api:simulated_network_api",
     "../api:transport_api",
     "../api/audio_codecs:builtin_audio_decoder_factory",
-    "../api/audio_codecs:builtin_audio_encoder_factory",
     "../api/rtc_event_log",
     "../api/task_queue",
     "../api/task_queue:default_task_queue_factory",
@@ -790,8 +795,6 @@ rtc_library("test_common") {
     "../modules/video_coding:video_coding_utility",
     "../modules/video_coding:webrtc_h264",
     "../modules/video_coding:webrtc_multiplex",
-    "../modules/video_coding:webrtc_vp8",
-    "../modules/video_coding:webrtc_vp9",
     "../rtc_base:checks",
     "../rtc_base:rtc_base_approved",
     "../rtc_base:rtc_numerics",
@@ -804,6 +807,17 @@ rtc_library("test_common") {
   ]
   if (!is_android && !build_with_chromium) {
     deps += [ "../modules/video_capture:video_capture_internal_impl" ]
+  }
+  if (rtc_build_builtin_codec) {
+    deps += [
+      "../modules/video_coding:webrtc_vp8",
+      "../modules/video_coding:webrtc_vp9",
+    ]
+  }
+  if (rtc_build_encoder) {
+    deps += [
+      "../api/audio_codecs:builtin_audio_encoder_factory",
+    ]
   }
 }
 

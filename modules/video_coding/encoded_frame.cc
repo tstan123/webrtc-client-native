@@ -15,8 +15,10 @@
 #include "absl/types/variant.h"
 #include "api/video/video_timing.h"
 #include "modules/video_coding/codecs/interface/common_constants.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/codecs/vp8/include/vp8_globals.h"
 #include "modules/video_coding/codecs/vp9/include/vp9_globals.h"
+#endif
 
 namespace webrtc {
 
@@ -56,6 +58,7 @@ void VCMEncodedFrame::Reset() {
 void VCMEncodedFrame::CopyCodecSpecific(const RTPVideoHeader* header) {
   if (header) {
     switch (header->codec) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
       case kVideoCodecVP8: {
         const auto& vp8_header =
             absl::get<RTPVideoHeaderVP8>(header->video_type_header);
@@ -133,6 +136,7 @@ void VCMEncodedFrame::CopyCodecSpecific(const RTPVideoHeader* header) {
         }
         break;
       }
+#endif
       case kVideoCodecH264: {
         _codecSpecificInfo.codecType = kVideoCodecH264;
 

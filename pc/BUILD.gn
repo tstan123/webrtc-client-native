@@ -188,10 +188,6 @@ rtc_library("peerconnection") {
     "peer_connection_internal.h",
     "remote_audio_source.cc",
     "remote_audio_source.h",
-    "rtc_stats_collector.cc",
-    "rtc_stats_collector.h",
-    "rtc_stats_traversal.cc",
-    "rtc_stats_traversal.h",
     "rtp_parameters_conversion.cc",
     "rtp_parameters_conversion.h",
     "rtp_receiver.cc",
@@ -204,8 +200,6 @@ rtc_library("peerconnection") {
     "sdp_serializer.h",
     "sdp_utils.cc",
     "sdp_utils.h",
-    "stats_collector.cc",
-    "stats_collector.h",
     "stream_collection.h",
     "track_media_info_map.cc",
     "track_media_info_map.h",
@@ -264,7 +258,6 @@ rtc_library("peerconnection") {
     "../rtc_base/system:rtc_export",
     "../rtc_base/third_party/base64",
     "../rtc_base/third_party/sigslot",
-    "../stats",
     "../system_wrappers",
     "../system_wrappers:field_trial",
     "../system_wrappers:metrics",
@@ -272,6 +265,19 @@ rtc_library("peerconnection") {
     "//third_party/abseil-cpp/absl/strings",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_stats) {
+    sources += [
+      "rtc_stats_traversal.cc",
+      "rtc_stats_traversal.h",
+      "stats_collector.cc",
+      "stats_collector.h",
+      "rtc_stats_collector.cc",
+      "rtc_stats_collector.h",
+    ]
+    deps += [
+      "../stats",
+    ]
+  }
 }
 
 rtc_source_set("libjingle_peerconnection") {

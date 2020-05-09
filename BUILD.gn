@@ -382,6 +382,21 @@ config("common_config") {
       "/U_UNICODE",
     ]
   }
+  if (rtc_build_encoder) {
+    defines += [ "WEBRTC_BUILD_ENCODER" ]
+  }
+  if (rtc_build_sendstream) {
+    defines += [ "WEBRTC_BUILD_SENDSTREAM" ]
+  }
+  if (rtc_build_ap) {
+    defines += [ "WEBRTC_BUILD_AP" ]
+  }
+  if (rtc_build_builtin_codec) {
+    defines += [ "WEBRTC_BUILD_BUILTIN_CODEC" ]
+  }
+  if (rtc_build_yungame) {
+    defines += [ "WEBRTC_BUILD_YUNGAME" ]
+  }
 }
 
 config("common_objc") {
@@ -437,15 +452,23 @@ if (!build_with_chromium) {
     if (rtc_include_builtin_audio_codecs) {
       deps += [
         "api/audio_codecs:builtin_audio_decoder_factory",
-        "api/audio_codecs:builtin_audio_encoder_factory",
       ]
+      if (rtc_build_encoder) {
+        deps += [
+          "api/audio_codecs:builtin_audio_encoder_factory",
+        ]
+      }
     }
 
     if (rtc_include_builtin_video_codecs) {
       deps += [
         "api/video_codecs:builtin_video_decoder_factory",
-        "api/video_codecs:builtin_video_encoder_factory",
       ]
+      if (rtc_build_encoder) {
+        deps += [
+          "api/video_codecs:builtin_video_encoder_factory",
+        ]
+      }
     }
 
     if (build_with_mozilla) {
@@ -459,6 +482,10 @@ if (!build_with_chromium) {
         "logging",
         "p2p",
         "pc",
+      ]
+    }
+    if (rtc_build_stats) {
+      deps += [
         "stats",
       ]
     }

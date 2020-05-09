@@ -18,16 +18,12 @@ rtc_library("audio") {
     "audio_level.h",
     "audio_receive_stream.cc",
     "audio_receive_stream.h",
-    "audio_send_stream.cc",
-    "audio_send_stream.h",
     "audio_state.cc",
     "audio_state.h",
     "audio_transport_impl.cc",
     "audio_transport_impl.h",
     "channel_receive.cc",
     "channel_receive.h",
-    "channel_send.cc",
-    "channel_send.h",
     "conversion.h",
     "null_audio_poller.cc",
     "null_audio_poller.h",
@@ -43,7 +39,6 @@ rtc_library("audio") {
     "../api:rtp_parameters",
     "../api:scoped_refptr",
     "../api:transport_api",
-    "../api/audio:aec3_factory",
     "../api/audio:audio_frame_api",
     "../api/audio:audio_mixer_api",
     "../api/audio_codecs:audio_codecs_api",
@@ -64,7 +59,6 @@ rtc_library("audio") {
     "../logging:rtc_stream_config",
     "../modules/audio_coding",
     "../modules/audio_coding:audio_coding_module_typedefs",
-    "../modules/audio_coding:audio_encoder_cng",
     "../modules/audio_coding:audio_network_adaptor_config",
     "../modules/audio_device",
     "../modules/audio_processing",
@@ -89,6 +83,24 @@ rtc_library("audio") {
     "//third_party/abseil-cpp/absl/memory",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_sendstream) {
+    sources += [
+      "audio_send_stream.cc",
+      "audio_send_stream.h",
+      "channel_send.cc",
+      "channel_send.h",
+    ]
+  }
+  if (rtc_build_encoder) {
+    deps += [
+      "../modules/audio_coding:audio_encoder_cng",
+    ]
+  }
+  if (rtc_build_ap) {
+    deps += [
+      "../api/audio:aec3_factory",
+    ]
+  }
 }
 if (rtc_include_tests) {
   rtc_library("audio_end_to_end_test") {

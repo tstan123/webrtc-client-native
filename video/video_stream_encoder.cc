@@ -789,6 +789,7 @@ void VideoStreamEncoder::ReconfigureEncoder() {
     RTC_LOG(LS_ERROR) << "Failed to create encoder configuration.";
   }
 
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   // Set min_bitrate_bps, max_bitrate_bps, and max padding bit rate for VP9.
   if (encoder_config_.codec_type == kVideoCodecVP9) {
     // Lower max bitrate to the level codec actually can produce.
@@ -800,6 +801,7 @@ void VideoStreamEncoder::ReconfigureEncoder() {
     streams[0].target_bitrate_bps =
         SvcRateAllocator::GetPaddingBitrate(codec).bps<int>();
   }
+#endif
 
   char log_stream_buf[4 * 1024];
   rtc::SimpleStringBuilder log_stream(log_stream_buf);

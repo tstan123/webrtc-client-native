@@ -17,13 +17,15 @@
 
 #include "api/media_types.h"
 #include "call/audio_receive_stream.h"
-#include "call/audio_send_stream.h"
 #include "call/call_config.h"
 #include "call/flexfec_receive_stream.h"
 #include "call/packet_receiver.h"
 #include "call/rtp_transport_controller_send_interface.h"
 #include "call/video_receive_stream.h"
+#ifdef WEBRTC_BUILD_SENDSTREAM
+#include "call/audio_send_stream.h"
 #include "call/video_send_stream.h"
+#endif
 #include "modules/utility/include/process_thread.h"
 #include "rtc_base/copy_on_write_buffer.h"
 #include "rtc_base/network/sent_packet.h"
@@ -54,16 +56,19 @@ class Call {
                       std::unique_ptr<ProcessThread> call_thread,
                       std::unique_ptr<ProcessThread> pacer_thread);
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   virtual AudioSendStream* CreateAudioSendStream(
       const AudioSendStream::Config& config) = 0;
 
   virtual void DestroyAudioSendStream(AudioSendStream* send_stream) = 0;
+#endif
 
   virtual AudioReceiveStream* CreateAudioReceiveStream(
       const AudioReceiveStream::Config& config) = 0;
   virtual void DestroyAudioReceiveStream(
       AudioReceiveStream* receive_stream) = 0;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   virtual VideoSendStream* CreateVideoSendStream(
       VideoSendStream::Config config,
       VideoEncoderConfig encoder_config) = 0;
@@ -72,6 +77,7 @@ class Call {
       VideoEncoderConfig encoder_config,
       std::unique_ptr<FecController> fec_controller);
   virtual void DestroyVideoSendStream(VideoSendStream* send_stream) = 0;
+#endif
 
   virtual VideoReceiveStream* CreateVideoReceiveStream(
       VideoReceiveStream::Config configuration) = 0;

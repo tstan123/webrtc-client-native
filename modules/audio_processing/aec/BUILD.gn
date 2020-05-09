@@ -8,6 +8,7 @@
 
 import("../../../webrtc.gni")
 
+if (rtc_build_ap) {
 rtc_library("aec") {
   configs += [ "..:apm_debug_dump" ]
   sources = [
@@ -69,6 +70,7 @@ rtc_library("aec_core") {
   if (current_cpu == "mipsel" && mips_float_abi == "hard") {
     sources += [ "aec_core_mips.cc" ]
   }
+}
 }
 
 if (rtc_include_tests) {

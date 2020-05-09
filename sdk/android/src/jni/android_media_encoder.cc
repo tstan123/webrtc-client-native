@@ -1042,6 +1042,7 @@ bool MediaCodecVideoEncoder::DeliverPendingOutputs(JNIEnv* jni) {
       RTPFragmentationHeader header;
       memset(&header, 0, sizeof(header));
       if (codec_type == kVideoCodecVP8 || codec_type == kVideoCodecVP9) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
         header.VerifyAndAllocateFragmentationHeader(1);
         header.fragmentationOffset[0] = 0;
         header.fragmentationLength[0] = image->size();
@@ -1058,6 +1059,7 @@ bool MediaCodecVideoEncoder::DeliverPendingOutputs(JNIEnv* jni) {
             image->qp_ = qp;
           }
         }
+#endif
       } else if (codec_type == kVideoCodecH264) {
         h264_bitstream_parser_.ParseBitstream(payload, payload_size);
         int qp;

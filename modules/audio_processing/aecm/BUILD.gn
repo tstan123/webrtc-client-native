@@ -8,6 +8,7 @@
 
 import("../../../webrtc.gni")
 
+if (rtc_build_ap) {
 rtc_library("aecm_core") {
   sources = [
     "aecm_core.cc",
@@ -41,4 +42,5 @@ rtc_library("aecm_core") {
   } else {
     sources += [ "aecm_core_c.cc" ]
   }
+}
 }

@@ -24,9 +24,11 @@ rtc_library("call_interfaces") {
     "syncable.cc",
     "syncable.h",
   ]
+if (rtc_build_sendstream) {
   if (!build_with_mozilla) {
     sources += [ "audio_send_stream.cc" ]
   }
+}
   deps = [
     ":rtp_interfaces",
     ":video_stream_api",
@@ -61,6 +63,10 @@ rtc_library("call_interfaces") {
     "../rtc_base/network:sent_packet",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_encoder) {
+    deps += [
+    ]
+  }
 }
 
 # TODO(nisse): These RTP targets should be moved elsewhere
@@ -127,9 +133,6 @@ rtc_library("rtp_sender") {
     "rtp_payload_params.h",
     "rtp_transport_controller_send.cc",
     "rtp_transport_controller_send.h",
-    "rtp_video_sender.cc",
-    "rtp_video_sender.h",
-    "rtp_video_sender_interface.h",
   ]
   deps = [
     ":bitrate_configurator",
@@ -174,6 +177,15 @@ rtc_library("rtp_sender") {
     "//third_party/abseil-cpp/absl/types:optional",
     "//third_party/abseil-cpp/absl/types:variant",
   ]
+  if (rtc_build_sendstream) {
+    sources += [
+      "rtp_video_sender.cc",
+      "rtp_video_sender.h",
+      "rtp_video_sender_interface.h",
+    ]
+    deps += [
+    ]
+  }
 }
 
 rtc_library("bitrate_configurator") {
@@ -280,8 +292,6 @@ rtc_library("video_stream_api") {
   sources = [
     "video_receive_stream.cc",
     "video_receive_stream.h",
-    "video_send_stream.cc",
-    "video_send_stream.h",
   ]
   deps = [
     ":rtp_interfaces",
@@ -295,7 +305,6 @@ rtc_library("video_stream_api") {
     "../api/transport/rtp:rtp_source",
     "../api/video:video_frame",
     "../api/video:video_rtp_headers",
-    "../api/video:video_stream_encoder",
     "../api/video_codecs:video_codecs_api",
     "../common_video",
     "../modules/rtp_rtcp:rtp_rtcp_format",
@@ -303,6 +312,15 @@ rtc_library("video_stream_api") {
     "../rtc_base:rtc_base_approved",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_sendstream) {
+    sources += [
+      "video_send_stream.cc",
+      "video_send_stream.h",
+    ]
+    deps += [
+      "../api/video:video_stream_encoder",
+    ]
+  }
 }
 
 rtc_library("simulated_network") {

@@ -19,7 +19,9 @@
 #include "common_video/include/i420_buffer_pool.h"
 #include "media/base/media_constants.h"
 #include "modules/video_coding/include/video_codec_interface.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/utility/vp8_header_parser.h"
+#endif
 #include "rtc_base/bind.h"
 #include "rtc_base/checks.h"
 #include "rtc_base/logging.h"
@@ -496,10 +498,12 @@ int32_t MediaCodecVideoDecoder::DecodeOnCodecThread(
   current_bytes_ += inputImage.size();
   absl::optional<uint8_t> qp;
   if (codecType_ == kVideoCodecVP8) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     int qp_int;
     if (vp8::GetQp(inputImage.data(), inputImage.size(), &qp_int)) {
       qp = qp_int;
     }
+#endif
   } else if (codecType_ == kVideoCodecH264) {
     h264_bitstream_parser_.ParseBitstream(inputImage.data(), inputImage.size());
     int qp_int;

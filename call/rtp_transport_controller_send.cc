@@ -113,6 +113,7 @@ RtpVideoSenderInterface* RtpTransportControllerSend::CreateRtpVideoSender(
     RtcEventLog* event_log,
     std::unique_ptr<FecController> fec_controller,
     const RtpSenderFrameEncryptionConfig& frame_encryption_config) {
+#ifdef WEBRTC_BUILD_SENDSTREAM
   video_rtp_senders_.push_back(std::make_unique<RtpVideoSender>(
       clock_, suspended_ssrcs, states, rtp_config, rtcp_report_interval_ms,
       send_transport, observers,
@@ -122,10 +123,14 @@ RtpVideoSenderInterface* RtpTransportControllerSend::CreateRtpVideoSender(
       frame_encryption_config.frame_encryptor,
       frame_encryption_config.crypto_options));
   return video_rtp_senders_.back().get();
+#else
+  return NULL;
+#endif
 }
 
 void RtpTransportControllerSend::DestroyRtpVideoSender(
     RtpVideoSenderInterface* rtp_video_sender) {
+#ifdef WEBRTC_BUILD_SENDSTREAM
   std::vector<std::unique_ptr<RtpVideoSenderInterface>>::iterator it =
       video_rtp_senders_.end();
   for (it = video_rtp_senders_.begin(); it != video_rtp_senders_.end(); ++it) {
@@ -135,6 +140,7 @@ void RtpTransportControllerSend::DestroyRtpVideoSender(
   }
   RTC_DCHECK(it != video_rtp_senders_.end());
   video_rtp_senders_.erase(it);
+#endif
 }
 
 void RtpTransportControllerSend::UpdateControlState() {

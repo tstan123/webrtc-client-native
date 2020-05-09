@@ -15,8 +15,10 @@
 #include "media/base/codec.h"
 #include "media/base/media_constants.h"
 #include "modules/video_coding/codecs/h264/include/h264.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/codecs/vp8/include/vp8.h"
 #include "modules/video_coding/codecs/vp9/include/vp9.h"
+#endif
 #include "rtc_base/checks.h"
 #include "rtc_base/logging.h"
 
@@ -42,9 +44,11 @@ bool IsFormatSupported(
 std::vector<SdpVideoFormat> InternalDecoderFactory::GetSupportedFormats()
     const {
   std::vector<SdpVideoFormat> formats;
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   formats.push_back(SdpVideoFormat(cricket::kVp8CodecName));
   for (const SdpVideoFormat& format : SupportedVP9Codecs())
     formats.push_back(format);
+#endif
   for (const SdpVideoFormat& h264_format : SupportedH264Codecs())
     formats.push_back(h264_format);
   return formats;
@@ -57,10 +61,12 @@ std::unique_ptr<VideoDecoder> InternalDecoderFactory::CreateVideoDecoder(
     return nullptr;
   }
 
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   if (absl::EqualsIgnoreCase(format.name, cricket::kVp8CodecName))
     return VP8Decoder::Create();
   if (absl::EqualsIgnoreCase(format.name, cricket::kVp9CodecName))
     return VP9Decoder::Create();
+#endif
   if (absl::EqualsIgnoreCase(format.name, cricket::kH264CodecName))
     return H264Decoder::Create();
 

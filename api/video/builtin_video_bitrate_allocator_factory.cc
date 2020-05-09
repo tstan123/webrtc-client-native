@@ -33,14 +33,18 @@ class BuiltinVideoBitrateAllocatorFactory
       const VideoCodec& codec) override {
     std::unique_ptr<VideoBitrateAllocator> rate_allocator;
     switch (codec.codecType) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
       case kVideoCodecVP8:
         RTC_FALLTHROUGH();
+#endif
       case kVideoCodecH264:
         rate_allocator.reset(new SimulcastRateAllocator(codec));
         break;
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
       case kVideoCodecVP9:
         rate_allocator.reset(new SvcRateAllocator(codec));
         break;
+#endif
       default:
         rate_allocator.reset(new DefaultVideoBitrateAllocator(codec));
     }

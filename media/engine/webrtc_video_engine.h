@@ -280,6 +280,7 @@ class WebRtcVideoChannel : public VideoMediaChannel,
   static std::string CodecSettingsVectorToString(
       const std::vector<VideoCodecSettings>& codecs);
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   // Wrapper for the sender part.
   class WebRtcVideoSendStream
       : public rtc::VideoSourceInterface<webrtc::VideoFrame> {
@@ -387,6 +388,7 @@ class WebRtcVideoChannel : public VideoMediaChannel,
     // first.
     rtc::AsyncInvoker invoker_;
   };
+#endif
 
   // Wrapper for the receiver part, contains configs etc. that are needed to
   // reconstruct the underlying VideoReceiveStream.
@@ -523,8 +525,10 @@ class WebRtcVideoChannel : public VideoMediaChannel,
   const MediaConfig::Video video_config_ RTC_GUARDED_BY(thread_checker_);
 
   // Using primary-ssrc (first ssrc) as key.
+#ifdef WEBRTC_BUILD_SENDSTREAM
   std::map<uint32_t, WebRtcVideoSendStream*> send_streams_
       RTC_GUARDED_BY(thread_checker_);
+#endif
   std::map<uint32_t, WebRtcVideoReceiveStream*> receive_streams_
       RTC_GUARDED_BY(thread_checker_);
   std::set<uint32_t> send_ssrcs_ RTC_GUARDED_BY(thread_checker_);
@@ -578,6 +582,7 @@ class WebRtcVideoChannel : public VideoMediaChannel,
   rtc::AsyncInvoker invoker_;
 };
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
 class EncoderStreamFactory
     : public webrtc::VideoEncoderConfig::VideoStreamFactoryInterface {
  public:
@@ -599,6 +604,7 @@ class EncoderStreamFactory
   // layering and various settings.
   const bool conference_mode_;
 };
+#endif
 
 }  // namespace cricket
 

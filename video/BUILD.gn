@@ -28,10 +28,6 @@ rtc_library("video") {
     "rtp_streams_synchronizer.h",
     "rtp_video_stream_receiver.cc",
     "rtp_video_stream_receiver.h",
-    "send_delay_stats.cc",
-    "send_delay_stats.h",
-    "send_statistics_proxy.cc",
-    "send_statistics_proxy.h",
     "stats_counter.cc",
     "stats_counter.h",
     "stream_synchronization.cc",
@@ -42,10 +38,6 @@ rtc_library("video") {
     "video_quality_observer.h",
     "video_receive_stream.cc",
     "video_receive_stream.h",
-    "video_send_stream.cc",
-    "video_send_stream.h",
-    "video_send_stream_impl.cc",
-    "video_send_stream_impl.h",
     "video_stream_decoder.cc",
     "video_stream_decoder.h",
   ]
@@ -70,8 +62,6 @@ rtc_library("video") {
     "../api/video:video_frame",
     "../api/video:video_frame_i420",
     "../api/video:video_rtp_headers",
-    "../api/video:video_stream_encoder",
-    "../api/video:video_stream_encoder_create",
     "../api/video_codecs:video_codecs_api",
     "../call:bitrate_allocator",
     "../call:call_interfaces",
@@ -122,6 +112,25 @@ rtc_library("video") {
     "//third_party/abseil-cpp/absl/memory",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  defines = []
+  if (rtc_build_sendstream) {
+    sources += [
+      "send_delay_stats.cc",
+      "send_delay_stats.h",
+      "send_statistics_proxy.cc",
+      "send_statistics_proxy.h",
+      "video_send_stream.cc",
+      "video_send_stream.h",
+      "video_send_stream_impl.cc",
+      "video_send_stream_impl.h",
+    ]
+    deps += [
+        "../api/video:video_stream_encoder",
+        "../api/video:video_stream_encoder_create",
+    ]
+  }
+  if (rtc_build_encoder) {
+  }
 
   if (!build_with_mozilla) {
     deps += [ "../media:rtc_media_base" ]
@@ -171,6 +180,7 @@ rtc_library("frame_dumping_decoder") {
   ]
 }
 
+if (rtc_build_encoder) {
 rtc_library("video_stream_encoder_impl") {
   visibility = [ "*" ]
 
@@ -205,7 +215,6 @@ rtc_library("video_stream_encoder_impl") {
     "../modules/video_coding",
     "../modules/video_coding:video_codec_interface",
     "../modules/video_coding:video_coding_utility",
-    "../modules/video_coding:webrtc_vp9_helpers",
     "../rtc_base:checks",
     "../rtc_base:criticalsection",
     "../rtc_base:logging",
@@ -229,6 +238,12 @@ rtc_library("video_stream_encoder_impl") {
     "//third_party/abseil-cpp/absl/algorithm:container",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_builtin_codec) {
+    deps += [
+      "../modules/video_coding:webrtc_vp9_helpers",
+    ]
+  }
+}
 }
 
 if (rtc_include_tests) {

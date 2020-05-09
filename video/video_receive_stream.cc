@@ -37,7 +37,9 @@
 #include "modules/video_coding/include/video_coding_defines.h"
 #include "modules/video_coding/include/video_error_codes.h"
 #include "modules/video_coding/timing.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/utility/vp8_header_parser.h"
+#endif
 #include "rtc_base/checks.h"
 #include "rtc_base/experiments/keyframe_interval_settings.h"
 #include "rtc_base/location.h"
@@ -72,11 +74,15 @@ VideoCodec CreateDecoderVideoCodec(const VideoReceiveStream::Decoder& decoder) {
   codec.plType = decoder.payload_type;
   codec.codecType = PayloadStringToCodecType(decoder.video_format.name);
 
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   if (codec.codecType == kVideoCodecVP8) {
     *(codec.VP8()) = VideoEncoder::GetDefaultVp8Settings();
   } else if (codec.codecType == kVideoCodecVP9) {
     *(codec.VP9()) = VideoEncoder::GetDefaultVp9Settings();
   } else if (codec.codecType == kVideoCodecH264) {
+#else
+  if (codec.codecType == kVideoCodecH264) {
+#endif
     *(codec.H264()) = VideoEncoder::GetDefaultH264Settings();
   } else if (codec.codecType == kVideoCodecMultiplex) {
     VideoReceiveStream::Decoder associated_decoder = decoder;
@@ -657,11 +663,13 @@ void VideoReceiveStream::HandleEncodedFrame(
 
   // Current OnPreDecode only cares about QP for VP8.
   int qp = -1;
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   if (frame->CodecSpecific()->codecType == kVideoCodecVP8) {
     if (!vp8::GetQp(frame->data(), frame->size(), &qp)) {
       RTC_LOG(LS_WARNING) << "Failed to extract QP from VP8 video frame";
     }
   }
+#endif
   stats_proxy_.OnPreDecode(frame->CodecSpecific()->codecType, qp);
 
   int decode_result = video_receiver_.Decode(frame.get());

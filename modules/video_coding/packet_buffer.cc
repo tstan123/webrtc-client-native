@@ -41,7 +41,11 @@ PacketBuffer::PacketBuffer(Clock* clock,
       is_cleared_to_first_seq_num_(false),
       buffer_(start_buffer_size),
       sps_pps_idr_is_h264_keyframe_(
+#ifdef WEBRTC_BUILD_YUNGAME
+          true) {
+#else
           field_trial::IsEnabled("WebRTC-SpsPpsIdrIsH264Keyframe")) {
+#endif
   RTC_DCHECK_LE(start_buffer_size, max_buffer_size);
   // Buffer size must always be a power of 2.
   RTC_DCHECK((start_buffer_size & (start_buffer_size - 1)) == 0);

@@ -1,21 +1,21 @@
-**WebRTC is a free, open software project** that provides browsers and mobile
-applications with Real-Time Communications (RTC) capabilities via simple APIs.
-The WebRTC components have been optimized to best serve this purpose.
+## 删减版WebRTC
 
-**Our mission:** To enable rich, high-quality RTC applications to be
-developed for the browser, mobile platforms, and IoT devices, and allow them
-all to communicate via a common set of protocols.
+### Android编译
 
-The WebRTC initiative is a project supported by Google, Mozilla and Opera,
-amongst others.
+1. 根据https://webrtc.googlesource.com/src/+/refs/heads/master/docs/native-code/android/index.md准备好编译环境, 并将src切本项目
+   git remote add webrtc-client-native https://github.com/tencentyun/webrtc-client-native.git
+   git fetch webrtc-client-native
+   git checkout webrtc-client-native/master
+   gclient sync -r bf053b6f3c7364c8e615b1f678339700be209cf7 --force
+2. 生成编译文件夹
+   gn gen out/Debug --args='target_os="android" target_cpu="arm"'
+3. 替换编译配置文件
+   cp args/android_arm.gn out/Debug/args.gn 或 cp args/android_arm64.gn out/Debug/args.gn
+4. 编译
+   ninja -C out/Debug
+5. 拷贝out/Debug/libjingle_peerconnection_so.so到leb-android-sdk/lebwebrtcsdk/src/libs/arm64-v8a 或armeabi-v7a文件夹下
+6. 拷贝out/Debug/lib.java/sdk/android/libwebrtc.jar到leb-android-sdk/lebwebrtcsdk/src/libs文件夹下 
 
-### Development
-
-See http://www.webrtc.org/native-code/development for instructions on how to get
-started developing with the native code.
-
-[Authoritative list](native-api.md) of directories that contain the
-native API header files.
 
 ### More info
 

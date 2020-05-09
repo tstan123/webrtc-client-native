@@ -263,6 +263,7 @@ AudioProcessingBuilder& AudioProcessingBuilder::SetCaptureAnalyzer(
   return *this;
 }
 
+#ifdef WEBRTC_BUILD_AP
 AudioProcessingBuilder& AudioProcessingBuilder::SetEchoControlFactory(
     std::unique_ptr<EchoControlFactory> echo_control_factory) {
   echo_control_factory_ = std::move(echo_control_factory);
@@ -274,6 +275,7 @@ AudioProcessingBuilder& AudioProcessingBuilder::SetEchoDetector(
   echo_detector_ = std::move(echo_detector);
   return *this;
 }
+#endif
 
 AudioProcessing* AudioProcessingBuilder::Create() {
   webrtc::Config config;
@@ -283,8 +285,12 @@ AudioProcessing* AudioProcessingBuilder::Create() {
 AudioProcessing* AudioProcessingBuilder::Create(const webrtc::Config& config) {
   AudioProcessingImpl* apm = new rtc::RefCountedObject<AudioProcessingImpl>(
       config, std::move(capture_post_processing_),
-      std::move(render_pre_processing_), std::move(echo_control_factory_),
-      std::move(echo_detector_), std::move(capture_analyzer_));
+      std::move(render_pre_processing_),
+#ifdef WEBRTC_BUILD_AP
+      std::move(echo_control_factory_),
+      std::move(echo_detector_), 
+#endif
+      std::move(capture_analyzer_));
   if (apm->Initialize() != AudioProcessing::kNoError) {
     delete apm;
     apm = nullptr;
@@ -296,8 +302,10 @@ AudioProcessingImpl::AudioProcessingImpl(const webrtc::Config& config)
     : AudioProcessingImpl(config,
                           /*capture_post_processor=*/nullptr,
                           /*render_pre_processor=*/nullptr,
+#ifdef WEBRTC_BUILD_AP
                           /*echo_control_factory=*/nullptr,
                           /*echo_detector=*/nullptr,
+#endif
                           /*capture_analyzer=*/nullptr) {}
 
 int AudioProcessingImpl::instance_count_ = 0;
@@ -306,8 +314,10 @@ AudioProcessingImpl::AudioProcessingImpl(
     const webrtc::Config& config,
     std::unique_ptr<CustomProcessing> capture_post_processor,
     std::unique_ptr<CustomProcessing> render_pre_processor,
+#ifdef WEBRTC_BUILD_AP
     std::unique_ptr<EchoControlFactory> echo_control_factory,
     rtc::scoped_refptr<EchoDetector> echo_detector,
+#endif
     std::unique_ptr<CustomAudioAnalyzer> capture_analyzer)
     : data_dumper_(
           new ApmDataDumper(rtc::AtomicOps::Increment(&instance_count_))),
@@ -316,13 +326,17 @@ AudioProcessingImpl::AudioProcessingImpl(
       render_runtime_settings_(kRuntimeSettingQueueSize),
       capture_runtime_settings_enqueuer_(&capture_runtime_settings_),
       render_runtime_settings_enqueuer_(&render_runtime_settings_),
+#ifdef WEBRTC_BUILD_AP
       echo_control_factory_(std::move(echo_control_factory)),
+#endif
       submodule_states_(!!capture_post_processor,
                         !!render_pre_processor,
                         !!capture_analyzer),
       submodules_(std::move(capture_post_processor),
                   std::move(render_pre_processor),
+#ifdef WEBRTC_BUILD_AP
                   std::move(echo_detector),
+#endif
                   std::move(capture_analyzer)),
       constants_(config.Get<ExperimentalAgc>().startup_min_volume,
                  config.Get<ExperimentalAgc>().clipped_level_min,
@@ -348,27 +362,33 @@ AudioProcessingImpl::AudioProcessingImpl(
 #endif
       capture_nonlocked_() {
   RTC_LOG(LS_INFO) << "Injected APM submodules:"
+#ifdef WEBRTC_BUILD_AP
                    << "\nEcho control factory: " << !!echo_control_factory_
                    << "\nEcho detector: " << !!submodules_.echo_detector
+#endif
                    << "\nCapture analyzer: " << !!submodules_.capture_analyzer
                    << "\nCapture post processor: "
                    << !!submodules_.capture_post_processor
                    << "\nRender pre processor: "
                    << !!submodules_.render_pre_processor;
 
+#ifdef WEBRTC_BUILD_AP
   // Mark Echo Controller enabled if a factory is injected.
   capture_nonlocked_.echo_controller_enabled =
       static_cast<bool>(echo_control_factory_);
+#endif
 
   submodules_.gain_control.reset(new GainControlImpl());
   submodules_.gain_control_for_experimental_agc.reset(
       new GainControlForExperimentalAgc(submodules_.gain_control.get()));
 
+#ifdef WEBRTC_BUILD_AP
   // If no echo detector is injected, use the ResidualEchoDetector.
   if (!submodules_.echo_detector) {
     submodules_.echo_detector =
         new rtc::RefCountedObject<ResidualEchoDetector>();
   }
+#endif
 
   // TODO(alessiob): Move the injected gain controller once injection is
   // implemented.
@@ -502,8 +522,10 @@ int AudioProcessingImpl::InitializeLocked() {
   InitializeTransient();
   InitializeHighPassFilter();
   InitializeVoiceDetector();
+#ifdef WEBRTC_BUILD_AP
   InitializeResidualEchoDetector();
   InitializeEchoController();
+#endif
   InitializeGainController2();
   InitializeNoiseSuppressor();
   InitializeAnalyzer();
@@ -983,6 +1005,7 @@ void AudioProcessingImpl::HandleRenderRuntimeSettings() {
 void AudioProcessingImpl::QueueBandedRenderAudio(AudioBuffer* audio) {
   RTC_DCHECK_GE(160, audio->num_frames_per_band());
 
+#ifdef WEBRTC_BUILD_AP
   // Insert the samples into the queue.
   if (submodules_.echo_cancellation) {
     RTC_DCHECK(aec_render_signal_queue_);
@@ -1016,6 +1039,7 @@ void AudioProcessingImpl::QueueBandedRenderAudio(AudioBuffer* audio) {
       RTC_DCHECK(result);
     }
   }
+#endif
 
   if (!constants_.use_experimental_agc) {
     GainControlImpl::PackRenderAudioBuffer(audio, &agc_render_queue_buffer_);
@@ -1032,6 +1056,7 @@ void AudioProcessingImpl::QueueBandedRenderAudio(AudioBuffer* audio) {
 }
 
 void AudioProcessingImpl::QueueNonbandedRenderAudio(AudioBuffer* audio) {
+#ifdef WEBRTC_BUILD_AP
   ResidualEchoDetector::PackRenderAudioBuffer(audio, &red_render_queue_buffer_);
 
   // Insert the samples into the queue.
@@ -1043,6 +1068,7 @@ void AudioProcessingImpl::QueueNonbandedRenderAudio(AudioBuffer* audio) {
     bool result = red_render_signal_queue_->Insert(&red_render_queue_buffer_);
     RTC_DCHECK(result);
   }
+#endif
 }
 
 void AudioProcessingImpl::AllocateRenderQueue() {
@@ -1096,6 +1122,7 @@ void AudioProcessingImpl::AllocateRenderQueue() {
 
 void AudioProcessingImpl::EmptyQueuedRenderAudio() {
   rtc::CritScope cs_capture(&crit_capture_);
+#ifdef WEBRTC_BUILD_AP
   if (submodules_.echo_cancellation) {
     RTC_DCHECK(aec_render_signal_queue_);
     while (aec_render_signal_queue_->Remove(&aec_capture_queue_buffer_)) {
@@ -1111,14 +1138,17 @@ void AudioProcessingImpl::EmptyQueuedRenderAudio() {
           aecm_capture_queue_buffer_);
     }
   }
+#endif
 
   while (agc_render_signal_queue_->Remove(&agc_capture_queue_buffer_)) {
     submodules_.gain_control->ProcessRenderAudio(agc_capture_queue_buffer_);
   }
 
   while (red_render_signal_queue_->Remove(&red_capture_queue_buffer_)) {
+#ifdef WEBRTC_BUILD_AP
     RTC_DCHECK(submodules_.echo_detector);
     submodules_.echo_detector->AnalyzeRenderAudio(red_capture_queue_buffer_);
+#endif
   }
 }
 
@@ -1216,6 +1246,7 @@ int AudioProcessingImpl::ProcessStream(AudioFrame* frame) {
 }
 
 int AudioProcessingImpl::ProcessCaptureStreamLocked() {
+#ifdef WEBRTC_BUILD_AP
   HandleCaptureRuntimeSettings();
 
   // Ensure that not both the AEC and AECM are active at the same time.
@@ -1399,11 +1430,13 @@ int AudioProcessingImpl::ProcessCaptureStreamLocked() {
     capture_buffer = capture_.capture_fullband_audio.get();
   }
 
+#ifdef WEBRTC_BUILD_AP
   if (config_.residual_echo_detector.enabled) {
     RTC_DCHECK(submodules_.echo_detector);
     submodules_.echo_detector->AnalyzeCaptureAudio(rtc::ArrayView<const float>(
         capture_buffer->channels()[0], capture_buffer->num_frames()));
   }
+#endif
 
   // TODO(aluebs): Investigate if the transient suppression placement should be
   // before or after the AGC.
@@ -1457,6 +1490,7 @@ int AudioProcessingImpl::ProcessCaptureStreamLocked() {
   }
 
   capture_.was_stream_delay_set = false;
+#endif
   return kNoError;
 }
 
@@ -1592,10 +1626,12 @@ int AudioProcessingImpl::ProcessRenderStreamLocked() {
     QueueBandedRenderAudio(render_buffer);
   }
 
+#ifdef WEBRTC_BUILD_AP
   // TODO(peah): Perform the queuing inside QueueRenderAudiuo().
   if (submodules_.echo_controller) {
     submodules_.echo_controller->AnalyzeRender(render_buffer);
   }
+#endif
 
   if (submodule_states_.RenderMultiBandProcessingActive() &&
       SampleRateSupportsMultiBand(
@@ -1705,6 +1741,7 @@ AudioProcessingStats AudioProcessingImpl::GetStatistics(
     return capture_.stats;
   }
   AudioProcessingStats stats = capture_.stats;
+#ifdef WEBRTC_BUILD_AP
   EchoCancellationImpl::Metrics metrics;
   if (submodules_.echo_controller) {
     auto ec_metrics = submodules_.echo_controller->GetMetrics();
@@ -1720,6 +1757,7 @@ AudioProcessingStats AudioProcessingImpl::GetStatistics(
     stats.residual_echo_likelihood_recent_max =
         ed_metrics.echo_likelihood_recent_max;
   }
+#endif
   return stats;
 }
 
@@ -1739,8 +1777,13 @@ AudioProcessing::Config AudioProcessingImpl::GetConfig() const {
 
 bool AudioProcessingImpl::UpdateActiveSubmoduleStates() {
   return submodule_states_.Update(
+#ifdef WEBRTC_BUILD_AP
       config_.high_pass_filter.enabled, !!submodules_.echo_cancellation,
       !!submodules_.echo_control_mobile, config_.residual_echo_detector.enabled,
+#else
+      config_.high_pass_filter.enabled, false,
+      false, config_.residual_echo_detector.enabled,
+#endif
       !!submodules_.legacy_noise_suppressor || !!submodules_.noise_suppressor,
       submodules_.gain_control->is_enabled(), config_.gain_controller2.enabled,
       config_.pre_amplifier.enabled, capture_nonlocked_.echo_controller_enabled,
@@ -1767,14 +1810,19 @@ void AudioProcessingImpl::InitializeHighPassFilter() {
 }
 
 void AudioProcessingImpl::InitializeVoiceDetector() {
+#ifdef WEBRTC_BUILD_AP
   if (config_.voice_detection.enabled) {
     submodules_.voice_detector = std::make_unique<VoiceDetection>(
         proc_split_sample_rate_hz(), VoiceDetection::kVeryLowLikelihood);
   } else {
     submodules_.voice_detector.reset();
   }
+#else
+  config_.voice_detection.enabled = false;
+#endif
 }
 void AudioProcessingImpl::InitializeEchoController() {
+#ifdef WEBRTC_BUILD_AP
   bool use_echo_controller =
       echo_control_factory_ ||
       (config_.echo_canceller.enabled && !config_.echo_canceller.mobile_mode &&
@@ -1874,6 +1922,7 @@ void AudioProcessingImpl::InitializeEchoController() {
       config_.echo_canceller.legacy_moderate_suppression_level
           ? EchoCancellationImpl::SuppressionLevel::kModerateSuppression
           : EchoCancellationImpl::SuppressionLevel::kHighSuppression);
+#endif
 }
 
 void AudioProcessingImpl::InitializeGainController2() {
@@ -1931,12 +1980,14 @@ void AudioProcessingImpl::InitializePreAmplifier() {
   }
 }
 
+#ifdef WEBRTC_BUILD_AP
 void AudioProcessingImpl::InitializeResidualEchoDetector() {
   RTC_DCHECK(submodules_.echo_detector);
   submodules_.echo_detector->Initialize(
       proc_fullband_sample_rate_hz(), 1,
       formats_.render_processing_format.sample_rate_hz(), 1);
 }
+#endif
 
 void AudioProcessingImpl::InitializeAnalyzer() {
   if (submodules_.capture_analyzer) {
@@ -1968,10 +2019,12 @@ void AudioProcessingImpl::WriteAecDumpConfigMessage(bool forced) {
   }
 
   std::string experiments_description = "";
+#ifdef WEBRTC_BUILD_AP
   if (submodules_.echo_cancellation) {
     experiments_description +=
         submodules_.echo_cancellation->GetExperimentsDescription();
   }
+#endif
   // TODO(peah): Add semicolon-separated concatenations of experiment
   // descriptions for other submodules.
   if (constants_.agc_clipped_level_min != kClippedLevelMin) {
@@ -1986,6 +2039,7 @@ void AudioProcessingImpl::WriteAecDumpConfigMessage(bool forced) {
 
   InternalAPMConfig apm_config;
 
+#ifdef WEBRTC_BUILD_AP
   apm_config.aec_enabled = config_.echo_canceller.enabled;
   apm_config.aec_delay_agnostic_enabled =
       submodules_.echo_cancellation &&
@@ -2009,6 +2063,7 @@ void AudioProcessingImpl::WriteAecDumpConfigMessage(bool forced) {
       submodules_.echo_control_mobile
           ? static_cast<int>(submodules_.echo_control_mobile->routing_mode())
           : 0;
+#endif
 
   apm_config.agc_enabled = submodules_.gain_control->is_enabled();
   apm_config.agc_mode = static_cast<int>(submodules_.gain_control->mode());
@@ -2077,6 +2132,7 @@ void AudioProcessingImpl::RecordProcessedCaptureStream(
 }
 
 void AudioProcessingImpl::RecordAudioProcessingState() {
+#ifdef WEBRTC_BUILD_AP
   RTC_DCHECK(aec_dump_);
   AecDump::AudioProcessingState audio_proc_state;
   audio_proc_state.delay = capture_nonlocked_.stream_delay_ms;
@@ -2087,6 +2143,7 @@ void AudioProcessingImpl::RecordAudioProcessingState() {
   audio_proc_state.level = agc1()->stream_analog_level();
   audio_proc_state.keypress = capture_.key_pressed;
   aec_dump_->AddAudioProcessingState(audio_proc_state);
+#endif
 }
 
 AudioProcessingImpl::ApmCaptureState::ApmCaptureState(

@@ -47,6 +47,7 @@ rtc_source_set("rtc_media_config") {
   ]
 }
 
+if (rtc_build_builtin_codec) {
 rtc_library("rtc_vp9_profile") {
   visibility = [ "*" ]
   sources = [
@@ -62,6 +63,7 @@ rtc_library("rtc_vp9_profile") {
     "//third_party/abseil-cpp/absl/types:optional",
   ]
 }
+}
 
 rtc_library("rtc_media_base") {
   visibility = [ "*" ]
@@ -70,7 +72,6 @@ rtc_library("rtc_media_base") {
   deps = [
     ":rtc_h264_profile_id",
     ":rtc_media_config",
-    ":rtc_vp9_profile",
     "..:webrtc_common",
     "../api:array_view",
     "../api:audio_options_api",
@@ -143,6 +144,11 @@ rtc_library("rtc_media_base") {
     "base/video_source_base.cc",
     "base/video_source_base.h",
   ]
+  if (rtc_build_builtin_codec) {
+    deps += [
+      ":rtc_vp9_profile",
+    ]
+  }
 }
 
 rtc_library("rtc_constants") {
@@ -155,6 +161,7 @@ rtc_library("rtc_constants") {
   ]
 }
 
+if (rtc_build_encoder) {
 rtc_library("rtc_simulcast_encoder_adapter") {
   visibility = [ "*" ]
   defines = []
@@ -204,6 +211,7 @@ rtc_library("rtc_encoder_simulcast_proxy") {
     "../rtc_base/system:rtc_export",
   ]
 }
+}
 
 rtc_library("rtc_internal_video_codecs") {
   visibility = [ "*" ]
@@ -212,10 +220,8 @@ rtc_library("rtc_internal_video_codecs") {
   libs = []
   deps = [
     ":rtc_constants",
-    ":rtc_encoder_simulcast_proxy",
     ":rtc_h264_profile_id",
     ":rtc_media_base",
-    ":rtc_simulcast_encoder_adapter",
     "../:webrtc_common",
     "../api/video:encoded_image",
     "../api/video:video_bitrate_allocation",
@@ -229,8 +235,6 @@ rtc_library("rtc_internal_video_codecs") {
     "../modules/video_coding:video_codec_interface",
     "../modules/video_coding:webrtc_h264",
     "../modules/video_coding:webrtc_multiplex",
-    "../modules/video_coding:webrtc_vp8",
-    "../modules/video_coding:webrtc_vp9",
     "../rtc_base:checks",
     "../rtc_base:deprecation",
     "../rtc_base:rtc_base_approved",
@@ -252,6 +256,20 @@ rtc_library("rtc_internal_video_codecs") {
     # targets depend on :rtc_encoder_simulcast_proxy directly.
     "engine/encoder_simulcast_proxy.h",
   ]
+  if (rtc_build_encoder) {
+    sources += [
+    ]
+    deps += [
+    ":rtc_encoder_simulcast_proxy",
+    ":rtc_simulcast_encoder_adapter",
+    ]
+  }
+  if (rtc_build_builtin_codec) {
+    deps += [
+    "../modules/video_coding:webrtc_vp8",
+    "../modules/video_coding:webrtc_vp9",
+    ]
+  }
 }
 
 rtc_library("rtc_audio_video") {
@@ -292,8 +310,8 @@ rtc_library("rtc_audio_video") {
     "../modules/audio_device:audio_device_impl",
     "../modules/audio_mixer:audio_mixer_impl",
     "../modules/audio_processing:api",
-    "../modules/audio_processing/aec_dump",
     "../modules/audio_processing/agc:gain_control_interface",
+    "../modules/audio_processing/aec_dump",
     "../modules/video_coding",
     "../modules/video_coding:video_codec_interface",
     "../modules/video_coding:video_coding_utility",
@@ -334,6 +352,14 @@ rtc_library("rtc_audio_video") {
     "engine/webrtc_voice_engine.cc",
     "engine/webrtc_voice_engine.h",
   ]
+  if (rtc_build_encoder) {
+  }
+  if (rtc_build_sendstream) {
+  }
+  if (rtc_build_ap) {
+    deps += [
+    ]
+  }
 
   public_configs = []
   if (!build_with_chromium) {
@@ -363,14 +389,18 @@ rtc_library("rtc_media_engine_defaults") {
   deps = [
     ":rtc_audio_video",
     "../api/audio_codecs:builtin_audio_decoder_factory",
-    "../api/audio_codecs:builtin_audio_encoder_factory",
     "../api/task_queue:default_task_queue_factory",
     "../api/video:builtin_video_bitrate_allocator_factory",
     "../api/video_codecs:builtin_video_decoder_factory",
-    "../api/video_codecs:builtin_video_encoder_factory",
     "../modules/audio_processing:api",
     "../rtc_base:checks",
   ]
+  if (rtc_build_encoder) {
+    deps += [
+      "../api/audio_codecs:builtin_audio_encoder_factory",
+      "../api/video_codecs:builtin_video_encoder_factory",
+    ]
+  }
 }
 
 rtc_library("rtc_data") {
@@ -520,7 +550,6 @@ if (rtc_include_tests) {
       ":rtc_media_engine_defaults",
       ":rtc_media_tests_utils",
       ":rtc_simulcast_encoder_adapter",
-      ":rtc_vp9_profile",
       "../:webrtc_common",
       "../api:create_simulcast_test_fixture_api",
       "../api:fake_media_transport",
@@ -546,7 +575,6 @@ if (rtc_include_tests) {
       "../api/video:video_frame_i420",
       "../api/video:video_rtp_headers",
       "../api/video_codecs:builtin_video_decoder_factory",
-      "../api/video_codecs:builtin_video_encoder_factory",
       "../api/video_codecs:video_codecs_api",
       "../audio",
       "../call:call_interfaces",
@@ -600,6 +628,16 @@ if (rtc_include_tests) {
       "engine/webrtc_media_engine_unittest.cc",
       "engine/webrtc_video_engine_unittest.cc",
     ]
+    if (rtc_build_encoder) {
+      deps += [
+        "../api/video_codecs:builtin_video_encoder_factory",
+      ]
+    }
+    if (rtc_build_builtin_codec) {
+      deps += [
+        ":rtc_vp9_profile",
+      ]
+    }
 
     # TODO(kthelgason): Reenable this test on iOS.
     # See bugs.webrtc.org/5569

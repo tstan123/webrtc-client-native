@@ -215,6 +215,13 @@ declare_args() {
   rtc_build_ssl = !build_with_mozilla
   rtc_build_usrsctp = !build_with_mozilla
 
+  rtc_build_encoder = true
+  rtc_build_sendstream = true
+  rtc_build_stats = true
+  rtc_build_ap = true
+  rtc_build_builtin_codec = true
+  rtc_build_yungame = false
+
   # Enable libevent task queues on platforms that support it.
   if (is_win || is_mac || is_ios || is_nacl || is_fuchsia ||
       target_cpu == "wasm") {

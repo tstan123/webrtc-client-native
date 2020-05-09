@@ -170,10 +170,6 @@ rtc_library("rtp_rtcp") {
     "source/rtp_format_h264.h",
     "source/rtp_format_video_generic.cc",
     "source/rtp_format_video_generic.h",
-    "source/rtp_format_vp8.cc",
-    "source/rtp_format_vp8.h",
-    "source/rtp_format_vp9.cc",
-    "source/rtp_format_vp9.h",
     "source/rtp_header_extension_size.cc",
     "source/rtp_header_extension_size.h",
     "source/rtp_packet_history.cc",
@@ -270,6 +266,14 @@ rtc_library("rtp_rtcp") {
     "//third_party/abseil-cpp/absl/types:optional",
     "//third_party/abseil-cpp/absl/types:variant",
   ]
+  if (rtc_build_builtin_codec) {
+    sources += [
+    "source/rtp_format_vp8.cc",
+    "source/rtp_format_vp8.h",
+    "source/rtp_format_vp9.cc",
+    "source/rtp_format_vp9.h",
+    ]
+  }
 }
 
 rtc_library("rtcp_transceiver") {

@@ -29,7 +29,9 @@ std::unique_ptr<MediaEngineInterface> CreateMediaEngine(
     MediaEngineDependencies dependencies) {
   auto audio_engine = std::make_unique<WebRtcVoiceEngine>(
       dependencies.task_queue_factory, std::move(dependencies.adm),
+#ifdef WEBRTC_BUILD_ENCODER
       std::move(dependencies.audio_encoder_factory),
+#endif
       std::move(dependencies.audio_decoder_factory),
       std::move(dependencies.audio_mixer),
       std::move(dependencies.audio_processing));

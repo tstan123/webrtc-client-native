@@ -12,6 +12,7 @@ if (is_android) {
   import("//build/config/android/rules.gni")
 }
 
+if (rtc_build_encoder) {
 rtc_library("audio_encoder_opus_config") {
   visibility = [ "*" ]
   sources = [
@@ -32,6 +33,7 @@ rtc_library("audio_encoder_opus_config") {
     defines += [ "WEBRTC_OPUS_VARIABLE_COMPLEXITY=0" ]
   }
 }
+}
 
 rtc_source_set("audio_decoder_opus_config") {
   visibility = [ "*" ]
@@ -40,6 +42,7 @@ rtc_source_set("audio_decoder_opus_config") {
   ]
 }
 
+if (rtc_build_encoder) {
 rtc_library("audio_encoder_opus") {
   visibility = [ "*" ]
   poisonous = [ "audio_codecs" ]
@@ -59,6 +62,7 @@ rtc_library("audio_encoder_opus") {
     "//third_party/abseil-cpp/absl/types:optional",
   ]
 }
+}
 
 rtc_library("audio_decoder_opus") {
   visibility = [ "*" ]
@@ -77,6 +81,7 @@ rtc_library("audio_decoder_opus") {
   ]
 }
 
+if (rtc_build_encoder) {
 rtc_library("audio_encoder_multiopus") {
   visibility = [ "*" ]
   poisonous = [ "audio_codecs" ]
@@ -94,6 +99,7 @@ rtc_library("audio_encoder_multiopus") {
     "../opus:audio_encoder_opus_config",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+}
 }
 
 rtc_library("audio_decoder_multiopus") {

@@ -50,8 +50,6 @@ rtc_library("api") {
     ":audio_processing_statistics",
     ":config",
     "../../api:scoped_refptr",
-    "../../api/audio:aec3_config",
-    "../../api/audio:echo_control",
     "../../rtc_base:deprecation",
     "../../rtc_base:macromagic",
     "../../rtc_base:rtc_base_approved",
@@ -60,6 +58,12 @@ rtc_library("api") {
     "agc:gain_control_interface",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_ap) {
+    deps += [
+    "../../api/audio:aec3_config",
+    "../../api/audio:echo_control",
+    ]
+  }
 }
 
 rtc_library("audio_buffer") {
@@ -112,18 +116,6 @@ rtc_library("audio_processing") {
     "audio_processing_impl.cc",
     "audio_processing_impl.h",
     "common.h",
-    "echo_cancellation_impl.cc",
-    "echo_cancellation_impl.h",
-    "echo_control_mobile_impl.cc",
-    "echo_control_mobile_impl.h",
-    "echo_detector/circular_buffer.cc",
-    "echo_detector/circular_buffer.h",
-    "echo_detector/mean_variance_estimator.cc",
-    "echo_detector/mean_variance_estimator.h",
-    "echo_detector/moving_max.cc",
-    "echo_detector/moving_max.h",
-    "echo_detector/normalized_covariance_estimator.cc",
-    "echo_detector/normalized_covariance_estimator.h",
     "gain_control_for_experimental_agc.cc",
     "gain_control_for_experimental_agc.h",
     "gain_control_impl.cc",
@@ -137,8 +129,6 @@ rtc_library("audio_processing") {
     "level_estimator.cc",
     "level_estimator.h",
     "render_queue_item_verifier.h",
-    "residual_echo_detector.cc",
-    "residual_echo_detector.h",
     "rms_level.cc",
     "rms_level.h",
     "transient/common.h",
@@ -156,8 +146,6 @@ rtc_library("audio_processing") {
     "transient/wpd_tree.h",
     "typing_detection.cc",
     "typing_detection.h",
-    "voice_detection.cc",
-    "voice_detection.h",
   ]
 
   defines = []
@@ -173,9 +161,7 @@ rtc_library("audio_processing") {
     ":high_pass_filter",
     "../../api:array_view",
     "../../api:function_view",
-    "../../api/audio:aec3_config",
     "../../api/audio:audio_frame_api",
-    "../../api/audio:echo_control",
     "../../audio/utility:audio_frame_operations",
     "../../common_audio:common_audio_c",
     "../../common_audio/third_party/fft4g",
@@ -189,10 +175,6 @@ rtc_library("audio_processing") {
     "../../system_wrappers:cpu_features_api",
     "../../system_wrappers:field_trial",
     "../../system_wrappers:metrics",
-    "aec",
-    "aec:aec_core",
-    "aec3",
-    "aecm:aecm_core",
     "agc",
     "agc:agc_legacy_c",
     "agc:gain_control_interface",
@@ -203,6 +185,37 @@ rtc_library("audio_processing") {
     "vad",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_encoder) {
+  } else {
+  }
+  if (rtc_build_ap) {
+    sources += [
+      "echo_cancellation_impl.cc",
+      "echo_cancellation_impl.h",
+      "echo_control_mobile_impl.cc",
+      "echo_control_mobile_impl.h",
+      "echo_detector/circular_buffer.cc",
+      "echo_detector/circular_buffer.h",
+      "echo_detector/mean_variance_estimator.cc",
+      "echo_detector/mean_variance_estimator.h",
+      "echo_detector/moving_max.cc",
+      "echo_detector/moving_max.h",
+      "echo_detector/normalized_covariance_estimator.cc",
+      "echo_detector/normalized_covariance_estimator.h",
+      "residual_echo_detector.cc",
+      "residual_echo_detector.h",
+      "voice_detection.cc",
+      "voice_detection.h",
+    ]
+    deps += [
+      "aec",
+      "aec:aec_core",
+      "aec3",
+      "aecm:aecm_core",
+      "../../api/audio:aec3_config",
+      "../../api/audio:echo_control",
+    ]
+  }
 
   if (aec_untrusted_delay_for_testing) {
     defines += [ "WEBRTC_UNTRUSTED_DELAY" ]

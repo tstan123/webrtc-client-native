@@ -214,6 +214,7 @@ rtc_library("video_stream_decoder_create") {
   ]
 }
 
+if (rtc_build_encoder) {
 rtc_library("video_stream_encoder") {
   visibility = [ "*" ]
   sources = [
@@ -254,6 +255,7 @@ rtc_library("video_stream_encoder_create") {
     "../video_codecs:video_codecs_api",
   ]
 }
+}
 
 rtc_library("builtin_video_bitrate_allocator_factory") {
   visibility = [ "*" ]
@@ -270,10 +272,15 @@ rtc_library("builtin_video_bitrate_allocator_factory") {
     "../../api:scoped_refptr",
     "../../media:rtc_media_base",
     "../../modules/video_coding:video_coding_utility",
-    "../../modules/video_coding:webrtc_vp9_helpers",
     "../../rtc_base/system:fallthrough",
     "../video_codecs:video_codecs_api",
   ]
+  defines = []
+  if (rtc_build_builtin_codec) {
+    deps += [
+        "../../modules/video_coding:webrtc_vp9_helpers",
+    ]
+  }
 }
 
 if (rtc_include_tests) {

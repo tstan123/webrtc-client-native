@@ -153,6 +153,7 @@ DegradedCall::DegradedCall(
 
 DegradedCall::~DegradedCall() = default;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
 AudioSendStream* DegradedCall::CreateAudioSendStream(
     const AudioSendStream::Config& config) {
   if (send_config_) {
@@ -174,6 +175,7 @@ void DegradedCall::DestroyAudioSendStream(AudioSendStream* send_stream) {
   call_->DestroyAudioSendStream(send_stream);
   audio_send_transport_adapters_.erase(send_stream);
 }
+#endif
 
 AudioReceiveStream* DegradedCall::CreateAudioReceiveStream(
     const AudioReceiveStream::Config& config) {
@@ -185,6 +187,7 @@ void DegradedCall::DestroyAudioReceiveStream(
   call_->DestroyAudioReceiveStream(receive_stream);
 }
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
 VideoSendStream* DegradedCall::CreateVideoSendStream(
     VideoSendStream::Config config,
     VideoEncoderConfig encoder_config) {
@@ -224,6 +227,7 @@ void DegradedCall::DestroyVideoSendStream(VideoSendStream* send_stream) {
   call_->DestroyVideoSendStream(send_stream);
   video_send_transport_adapters_.erase(send_stream);
 }
+#endif
 
 VideoReceiveStream* DegradedCall::CreateVideoReceiveStream(
     VideoReceiveStream::Config configuration) {

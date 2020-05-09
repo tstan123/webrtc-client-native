@@ -19,7 +19,9 @@
 #include "modules/include/module_common_types.h"
 #include "modules/include/module_common_types_public.h"
 #include "modules/video_coding/codecs/interface/common_constants.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/codecs/vp8/include/vp8_globals.h"
+#endif
 #include "modules/video_coding/jitter_buffer_common.h"
 #include "modules/video_coding/packet.h"
 #include "rtc_base/logging.h"

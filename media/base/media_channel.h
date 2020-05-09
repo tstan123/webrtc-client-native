@@ -482,7 +482,9 @@ struct VoiceSenderInfo : public MediaSenderInfo {
   double total_input_energy = 0.0;
   double total_input_duration = 0.0;
   bool typing_noise_detected = false;
+#ifdef WEBRTC_BUILD_SENDSTREAM
   webrtc::ANAStats ana_statistics;
+#endif
   webrtc::AudioProcessingStats apm_statistics;
 };
 

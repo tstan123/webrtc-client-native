@@ -16,7 +16,9 @@
 #include <string>
 #include <vector>
 
+#ifdef WEBRTC_BUILD_ENCODER
 #include "api/audio_codecs/audio_encoder_factory.h"
+#endif
 #include "api/scoped_refptr.h"
 #include "api/task_queue/task_queue_factory.h"
 #include "api/transport/rtp/rtp_source.h"
@@ -46,7 +48,9 @@ class WebRtcVoiceEngine final : public VoiceEngineInterface {
   WebRtcVoiceEngine(
       webrtc::TaskQueueFactory* task_queue_factory,
       webrtc::AudioDeviceModule* adm,
+#ifdef WEBRTC_BUILD_ENCODER
       const rtc::scoped_refptr<webrtc::AudioEncoderFactory>& encoder_factory,
+#endif
       const rtc::scoped_refptr<webrtc::AudioDecoderFactory>& decoder_factory,
       rtc::scoped_refptr<webrtc::AudioMixer> audio_mixer,
       rtc::scoped_refptr<webrtc::AudioProcessing> audio_processing);
@@ -104,7 +108,9 @@ class WebRtcVoiceEngine final : public VoiceEngineInterface {
 
   // The audio device module.
   rtc::scoped_refptr<webrtc::AudioDeviceModule> adm_;
+#ifdef WEBRTC_BUILD_ENCODER
   rtc::scoped_refptr<webrtc::AudioEncoderFactory> encoder_factory_;
+#endif
   rtc::scoped_refptr<webrtc::AudioDecoderFactory> decoder_factory_;
   rtc::scoped_refptr<webrtc::AudioMixer> audio_mixer_;
   // The audio processing module.
@@ -295,8 +301,10 @@ class WebRtcVoiceMediaChannel final : public VoiceMediaChannel,
   // and https://code.google.com/p/chromium/issues/detail?id=547661
   uint32_t receiver_reports_ssrc_ = 0xFA17FA17u;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   class WebRtcAudioSendStream;
   std::map<uint32_t, WebRtcAudioSendStream*> send_streams_;
+#endif
   std::vector<webrtc::RtpExtension> send_rtp_extensions_;
   std::string mid_;
 
@@ -304,8 +312,10 @@ class WebRtcVoiceMediaChannel final : public VoiceMediaChannel,
   std::map<uint32_t, WebRtcAudioReceiveStream*> recv_streams_;
   std::vector<webrtc::RtpExtension> recv_rtp_extensions_;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   absl::optional<webrtc::AudioSendStream::Config::SendCodecSpec>
       send_codec_spec_;
+#endif
 
   // TODO(kwiberg): Per-SSRC codec pair IDs?
   const webrtc::AudioCodecPairId codec_pair_id_ =

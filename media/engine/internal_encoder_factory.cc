@@ -17,8 +17,10 @@
 #include "media/base/codec.h"
 #include "media/base/media_constants.h"
 #include "modules/video_coding/codecs/h264/include/h264.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/codecs/vp8/include/vp8.h"
 #include "modules/video_coding/codecs/vp9/include/vp9.h"
+#endif
 #include "rtc_base/logging.h"
 
 namespace webrtc {
@@ -26,9 +28,11 @@ namespace webrtc {
 std::vector<SdpVideoFormat> InternalEncoderFactory::GetSupportedFormats()
     const {
   std::vector<SdpVideoFormat> supported_codecs;
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   supported_codecs.push_back(SdpVideoFormat(cricket::kVp8CodecName));
   for (const webrtc::SdpVideoFormat& format : webrtc::SupportedVP9Codecs())
     supported_codecs.push_back(format);
+#endif
   for (const webrtc::SdpVideoFormat& format : webrtc::SupportedH264Codecs())
     supported_codecs.push_back(format);
   return supported_codecs;
@@ -44,10 +48,12 @@ VideoEncoderFactory::CodecInfo InternalEncoderFactory::QueryVideoEncoder(
 
 std::unique_ptr<VideoEncoder> InternalEncoderFactory::CreateVideoEncoder(
     const SdpVideoFormat& format) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   if (absl::EqualsIgnoreCase(format.name, cricket::kVp8CodecName))
     return VP8Encoder::Create();
   if (absl::EqualsIgnoreCase(format.name, cricket::kVp9CodecName))
     return VP9Encoder::Create(cricket::VideoCodec(format));
+#endif
   if (absl::EqualsIgnoreCase(format.name, cricket::kH264CodecName))
     return H264Encoder::Create(cricket::VideoCodec(format));
   RTC_LOG(LS_ERROR) << "Trying to created encoder of unsupported format "

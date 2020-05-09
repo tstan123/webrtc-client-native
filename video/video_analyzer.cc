@@ -435,6 +435,7 @@ bool VideoAnalyzer::IsInSelectedSpatialAndTemporalLayer(
       header.payloadType != test::CallTest::kPayloadTypeVP8) {
     return true;
   } else {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     // Get VP8 and VP9 specific header to check layers indexes.
     const uint8_t* payload = packet + header.headerLength;
     const size_t payload_length = length - header.headerLength;
@@ -465,6 +466,7 @@ bool VideoAnalyzer::IsInSelectedSpatialAndTemporalLayer(
             temporal_idx <= selected_tl_) &&
            (selected_sl_ < 0 || spatial_idx == kNoSpatialIdx ||
             spatial_idx <= selected_sl_);
+#endif
   }
 }
 

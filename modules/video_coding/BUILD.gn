@@ -143,7 +143,6 @@ rtc_library("video_coding") {
     ":packet",
     ":video_codec_interface",
     ":video_coding_utility",
-    ":webrtc_vp9_helpers",
     "..:module_api",
     "..:module_api_public",
     "../../api:fec_controller_api",
@@ -180,6 +179,12 @@ rtc_library("video_coding") {
     "//third_party/abseil-cpp/absl/types:optional",
     "//third_party/abseil-cpp/absl/types:variant",
   ]
+  defines = []
+  if (rtc_build_builtin_codec) {
+    deps += [
+      ":webrtc_vp9_helpers",
+    ]
+  }
 }
 
 rtc_library("video_codec_interface") {
@@ -284,10 +289,6 @@ rtc_library("video_coding_utility") {
     "utility/simulcast_rate_allocator.h",
     "utility/simulcast_utility.cc",
     "utility/simulcast_utility.h",
-    "utility/vp8_header_parser.cc",
-    "utility/vp8_header_parser.h",
-    "utility/vp9_uncompressed_header_parser.cc",
-    "utility/vp9_uncompressed_header_parser.h",
   ]
 
   deps = [
@@ -317,6 +318,14 @@ rtc_library("video_coding_utility") {
     "../rtp_rtcp:rtp_rtcp_format",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_builtin_codec) {
+    sources += [
+    "utility/vp8_header_parser.cc",
+    "utility/vp8_header_parser.h",
+    "utility/vp9_uncompressed_header_parser.cc",
+    "utility/vp9_uncompressed_header_parser.h",
+    ]
+  }
 }
 
 rtc_library("webrtc_h264") {
@@ -327,10 +336,14 @@ rtc_library("webrtc_h264") {
     "codecs/h264/h264_color_space.h",
     "codecs/h264/h264_decoder_impl.cc",
     "codecs/h264/h264_decoder_impl.h",
-    "codecs/h264/h264_encoder_impl.cc",
-    "codecs/h264/h264_encoder_impl.h",
     "codecs/h264/include/h264.h",
   ]
+  if (rtc_build_encoder) {
+    sources += [
+      "codecs/h264/h264_encoder_impl.cc",
+      "codecs/h264/h264_encoder_impl.h",
+    ]
+  }
 
   defines = []
   deps = [
@@ -395,6 +408,7 @@ rtc_library("webrtc_multiplex") {
   ]
 }
 
+if (rtc_build_builtin_codec) {
 # This target includes the internal SW codec.
 rtc_library("webrtc_vp8") {
   visibility = [ "*" ]
@@ -532,6 +546,7 @@ rtc_library("webrtc_vp9") {
   if (rtc_build_libvpx) {
     deps += [ rtc_libvpx_dir ]
   }
+}
 }
 
 if (rtc_include_tests) {

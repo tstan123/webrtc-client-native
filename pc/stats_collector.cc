@@ -235,6 +235,7 @@ void ExtractStats(const cricket::VoiceSenderInfo& info,
     }
   }
   report->AddString(StatsReport::kStatsValueNameMediaType, "audio");
+#ifdef WEBRTC_BUILD_SENDSTREAM
   if (info.ana_statistics.bitrate_action_counter) {
     report->AddInt(StatsReport::kStatsValueNameAnaBitrateActionCounter,
                    *info.ana_statistics.bitrate_action_counter);
@@ -263,6 +264,7 @@ void ExtractStats(const cricket::VoiceSenderInfo& info,
     report->AddFloat(StatsReport::kStatsValueNameAnaUplinkPacketLossFraction,
                      *info.ana_statistics.uplink_packet_loss_fraction);
   }
+#endif
 }
 
 void ExtractStats(const cricket::VideoReceiverInfo& info,

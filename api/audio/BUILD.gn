@@ -36,6 +36,7 @@ rtc_source_set("audio_mixer_api") {
   ]
 }
 
+if (rtc_build_ap) {
 rtc_library("aec3_config") {
   visibility = [ "*" ]
   sources = [
@@ -66,7 +67,9 @@ rtc_library("aec3_config_json") {
     "//third_party/abseil-cpp/absl/strings",
   ]
 }
+}
 
+if (rtc_build_ap) {
 rtc_library("aec3_factory") {
   visibility = [ "*" ]
   configs += [ "../../modules/audio_processing:apm_debug_dump" ]
@@ -83,7 +86,9 @@ rtc_library("aec3_factory") {
     "../../rtc_base/system:rtc_export",
   ]
 }
+}
 
+if (rtc_build_ap) {
 rtc_source_set("echo_control") {
   visibility = [ "*" ]
   sources = [
@@ -92,4 +97,5 @@ rtc_source_set("echo_control") {
   deps = [
     "../../rtc_base:checks",
   ]
+}
 }

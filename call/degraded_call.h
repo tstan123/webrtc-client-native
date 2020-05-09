@@ -51,14 +51,17 @@ class DegradedCall : public Call, private PacketReceiver {
   ~DegradedCall() override;
 
   // Implements Call.
+#ifdef WEBRTC_BUILD_SENDSTREAM
   AudioSendStream* CreateAudioSendStream(
       const AudioSendStream::Config& config) override;
   void DestroyAudioSendStream(AudioSendStream* send_stream) override;
+#endif
 
   AudioReceiveStream* CreateAudioReceiveStream(
       const AudioReceiveStream::Config& config) override;
   void DestroyAudioReceiveStream(AudioReceiveStream* receive_stream) override;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   VideoSendStream* CreateVideoSendStream(
       VideoSendStream::Config config,
       VideoEncoderConfig encoder_config) override;
@@ -67,6 +70,7 @@ class DegradedCall : public Call, private PacketReceiver {
       VideoEncoderConfig encoder_config,
       std::unique_ptr<FecController> fec_controller) override;
   void DestroyVideoSendStream(VideoSendStream* send_stream) override;
+#endif
 
   VideoReceiveStream* CreateVideoReceiveStream(
       VideoReceiveStream::Config configuration) override;

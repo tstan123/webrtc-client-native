@@ -28,12 +28,16 @@ rtc_library("video_codecs_api") {
     "video_encoder_config.cc",
     "video_encoder_config.h",
     "video_encoder_factory.h",
-    "vp8_frame_buffer_controller.h",
-    "vp8_frame_config.cc",
-    "vp8_frame_config.h",
-    "vp8_temporal_layers.cc",
-    "vp8_temporal_layers.h",
   ]
+  if (rtc_build_builtin_codec) {
+    sources += [
+      "vp8_frame_buffer_controller.h",
+      "vp8_frame_config.cc",
+      "vp8_frame_config.h",
+      "vp8_temporal_layers.cc",
+      "vp8_temporal_layers.h",
+    ]
+  }
 
   deps = [
     "..:fec_controller_api",
@@ -85,6 +89,7 @@ rtc_library("builtin_video_decoder_factory") {
   ]
 }
 
+if (rtc_build_encoder) {
 rtc_library("builtin_video_encoder_factory") {
   visibility = [ "*" ]
   allow_poison = [
@@ -107,7 +112,9 @@ rtc_library("builtin_video_encoder_factory") {
     "//third_party/abseil-cpp/absl/strings",
   ]
 }
+}
 
+if (rtc_build_builtin_codec) {
 rtc_library("vp8_temporal_layers_factory") {
   visibility = [ "*" ]
   allow_poison = [ "software_video_codecs" ]
@@ -123,6 +130,7 @@ rtc_library("vp8_temporal_layers_factory") {
     "../../modules/video_coding:webrtc_vp8_temporal_layers",
     "../../rtc_base:checks",
   ]
+}
 }
 
 rtc_library("rtc_software_fallback_wrappers") {
@@ -152,4 +160,8 @@ rtc_library("rtc_software_fallback_wrappers") {
     "../video:video_rtp_headers",
     "//third_party/abseil-cpp/absl/types:optional",
   ]
+  if (rtc_build_encoder) {
+    sources += [
+    ]
+  }
 }

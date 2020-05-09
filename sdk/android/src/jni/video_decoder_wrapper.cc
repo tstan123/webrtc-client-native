@@ -12,8 +12,10 @@
 
 #include "api/video/video_frame.h"
 #include "modules/video_coding/include/video_codec_interface.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/utility/vp8_header_parser.h"
 #include "modules/video_coding/utility/vp9_uncompressed_header_parser.h"
+#endif
 #include "rtc_base/logging.h"
 #include "rtc_base/numerics/safe_conversions.h"
 #include "rtc_base/time_utils.h"
@@ -234,6 +236,7 @@ absl::optional<uint8_t> VideoDecoderWrapper::ParseQP(
 
   absl::optional<uint8_t> qp;
   switch (codec_settings_.codecType) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8: {
       int qp_int;
       if (vp8::GetQp(input_image.data(), input_image.size(), &qp_int)) {
@@ -248,6 +251,7 @@ absl::optional<uint8_t> VideoDecoderWrapper::ParseQP(
       }
       break;
     }
+#endif
     case kVideoCodecH264: {
       h264_bitstream_parser_.ParseBitstream(input_image.data(),
                                             input_image.size());

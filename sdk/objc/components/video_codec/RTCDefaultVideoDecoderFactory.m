@@ -13,7 +13,9 @@
 #import "RTCH264ProfileLevelId.h"
 #import "RTCVideoDecoderH264.h"
 #import "api/video_codec/RTCVideoCodecConstants.h"
+#if defined(WEBRTC_BUILD_BUILTIN_CODEC)
 #import "api/video_codec/RTCVideoDecoderVP8.h"
+#endif
 #import "base/RTCVideoCodecInfo.h"
 #if defined(RTC_ENABLE_VP9)
 #import "api/video_codec/RTCVideoDecoderVP9.h"
@@ -24,8 +26,10 @@
 - (id<RTCVideoDecoder>)createDecoder:(RTCVideoCodecInfo *)info {
   if ([info.name isEqualToString:kRTCVideoCodecH264Name]) {
     return [[RTCVideoDecoderH264 alloc] init];
+#if defined(WEBRTC_BUILD_BUILTIN_CODEC)
   } else if ([info.name isEqualToString:kRTCVideoCodecVp8Name]) {
     return [RTCVideoDecoderVP8 vp8Decoder];
+#endif
 #if defined(RTC_ENABLE_VP9)
   } else if ([info.name isEqualToString:kRTCVideoCodecVp9Name]) {
     return [RTCVideoDecoderVP9 vp9Decoder];

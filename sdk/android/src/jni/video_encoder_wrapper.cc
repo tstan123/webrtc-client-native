@@ -15,8 +15,10 @@
 #include "common_video/h264/h264_common.h"
 #include "modules/video_coding/include/video_codec_interface.h"
 #include "modules/video_coding/include/video_error_codes.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/utility/vp8_header_parser.h"
 #include "modules/video_coding/utility/vp9_uncompressed_header_parser.h"
+#endif
 #include "rtc_base/logging.h"
 #include "rtc_base/task_utils/to_queued_task.h"
 #include "rtc_base/time_utils.h"
@@ -61,6 +63,7 @@ int VideoEncoderWrapper::InitEncode(const VideoCodec* codec_settings,
 int32_t VideoEncoderWrapper::InitEncodeInternal(JNIEnv* jni) {
   bool automatic_resize_on;
   switch (codec_settings_.codecType) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8:
       automatic_resize_on = codec_settings_.VP8()->automaticResizeOn;
       break;
@@ -69,6 +72,7 @@ int32_t VideoEncoderWrapper::InitEncodeInternal(JNIEnv* jni) {
       gof_.SetGofInfoVP9(TemporalStructureMode::kTemporalStructureMode1);
       gof_idx_ = 0;
       break;
+#endif
     default:
       automatic_resize_on = true;
   }
@@ -190,6 +194,7 @@ VideoEncoderWrapper::GetScalingSettingsInternal(JNIEnv* jni) const {
     return ScalingSettings(*low, *high);
 
   switch (codec_settings_.codecType) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8: {
       // Same as in vp8_impl.cc.
       static const int kLowVp8QpThreshold = 29;
@@ -206,6 +211,7 @@ VideoEncoderWrapper::GetScalingSettingsInternal(JNIEnv* jni) const {
       return VideoEncoder::ScalingSettings(kLowVp9QpThreshold,
                                            kHighVp9QpThreshold);
     }
+#endif
     case kVideoCodecH264: {
       // Same as in h264_encoder_impl.cc.
       static const int kLowH264QpThreshold = 24;
@@ -368,12 +374,14 @@ int VideoEncoderWrapper::ParseQp(rtc::ArrayView<const uint8_t> buffer) {
   int qp;
   bool success;
   switch (codec_settings_.codecType) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8:
       success = vp8::GetQp(buffer.data(), buffer.size(), &qp);
       break;
     case kVideoCodecVP9:
       success = vp9::GetQp(buffer.data(), buffer.size(), &qp);
       break;
+#endif
     case kVideoCodecH264:
       success = h264_bitstream_parser_.GetLastSliceQp(&qp);
       break;
@@ -386,12 +394,15 @@ int VideoEncoderWrapper::ParseQp(rtc::ArrayView<const uint8_t> buffer) {
 
 CodecSpecificInfo VideoEncoderWrapper::ParseCodecSpecificInfo(
     const EncodedImage& frame) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   const bool key_frame = frame._frameType == VideoFrameType::kVideoFrameKey;
+#endif
 
   CodecSpecificInfo info;
   info.codecType = codec_settings_.codecType;
 
   switch (codec_settings_.codecType) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8:
       info.codecSpecific.VP8.nonReference = false;
       info.codecSpecific.VP8.temporalIdx = kNoTemporalIdx;
@@ -421,6 +432,7 @@ CodecSpecificInfo VideoEncoderWrapper::ParseCodecSpecificInfo(
         info.codecSpecific.VP9.gof.CopyGofInfoVP9(gof_);
       }
       break;
+#endif
     default:
       break;
   }

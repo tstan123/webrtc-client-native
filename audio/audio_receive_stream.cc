@@ -337,10 +337,12 @@ void AudioReceiveStream::SetMinimumPlayoutDelay(int delay_ms) {
 }
 
 void AudioReceiveStream::AssociateSendStream(AudioSendStream* send_stream) {
+#ifdef WEBRTC_BUILD_SENDSTREAM
   RTC_DCHECK_RUN_ON(&worker_thread_checker_);
   channel_receive_->SetAssociatedSendChannel(
       send_stream ? send_stream->GetChannel() : nullptr);
   associated_send_stream_ = send_stream;
+#endif
 }
 
 void AudioReceiveStream::DeliverRtcp(const uint8_t* packet, size_t length) {

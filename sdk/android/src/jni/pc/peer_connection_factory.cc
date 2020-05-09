@@ -314,7 +314,9 @@ ScopedJavaLocalRef<jobject> CreatePeerConnectionFactoryForJava(
   cricket::MediaEngineDependencies media_dependencies;
   media_dependencies.task_queue_factory = dependencies.task_queue_factory.get();
   media_dependencies.adm = std::move(audio_device_module);
+#ifdef WEBRTC_BUILD_ENCODER
   media_dependencies.audio_encoder_factory = std::move(audio_encoder_factory);
+#endif
   media_dependencies.audio_decoder_factory = std::move(audio_decoder_factory);
   media_dependencies.audio_processing = std::move(audio_processor);
   media_dependencies.video_encoder_factory =

@@ -20,7 +20,9 @@
 #include "api/task_queue/task_queue_base.h"
 #include "api/video_codecs/video_encoder.h"
 #include "common_video/h264/h264_bitstream_parser.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/codecs/vp9/include/vp9_globals.h"
+#endif
 #include "sdk/android/src/jni/jni_helpers.h"
 #include "sdk/android/src/jni/video_frame.h"
 
@@ -96,10 +98,12 @@ class VideoEncoderWrapper : public VideoEncoder {
   EncoderInfo encoder_info_;
   H264BitstreamParser h264_bitstream_parser_;
 
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
   // VP9 variables to populate codec specific structure.
   GofInfoVP9 gof_;  // Contains each frame's temporal information for
                     // non-flexible VP9 mode.
   size_t gof_idx_;
+#endif
 };
 
 /* If the j_encoder is a wrapped native encoder, unwrap it. If it is not,

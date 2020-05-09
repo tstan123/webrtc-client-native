@@ -219,7 +219,9 @@
     cricket::MediaEngineDependencies media_deps;
     media_deps.adm = std::move(audioDeviceModule);
     media_deps.task_queue_factory = dependencies.task_queue_factory.get();
+#ifdef WEBRTC_BUILD_ENCODER
     media_deps.audio_encoder_factory = std::move(audioEncoderFactory);
+#endif
     media_deps.audio_decoder_factory = std::move(audioDecoderFactory);
     media_deps.video_encoder_factory = std::move(videoEncoderFactory);
     media_deps.video_decoder_factory = std::move(videoDecoderFactory);

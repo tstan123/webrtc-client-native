@@ -23,8 +23,6 @@
 #include "api/rtc_event_log/rtc_event_log.h"
 #include "api/transport/network_control.h"
 #include "audio/audio_receive_stream.h"
-#include "audio/audio_send_stream.h"
-#include "audio/audio_state.h"
 #include "call/bitrate_allocator.h"
 #include "call/flexfec_receive_stream_impl.h"
 #include "call/receive_time_calculator.h"
@@ -62,7 +60,11 @@
 #include "video/send_delay_stats.h"
 #include "video/stats_counter.h"
 #include "video/video_receive_stream.h"
+#ifdef WEBRTC_BUILD_SENDSTREAM
 #include "video/video_send_stream.h"
+#include "audio/audio_send_stream.h"
+#include "audio/audio_state.h"
+#endif
 
 namespace webrtc {
 
@@ -126,6 +128,7 @@ std::unique_ptr<rtclog::StreamConfig> CreateRtcLogStreamConfig(
   return rtclog_config;
 }
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
 std::unique_ptr<rtclog::StreamConfig> CreateRtcLogStreamConfig(
     const VideoSendStream::Config& config,
     size_t ssrc_index) {
@@ -142,6 +145,7 @@ std::unique_ptr<rtclog::StreamConfig> CreateRtcLogStreamConfig(
                                      config.rtp.rtx.payload_type);
   return rtclog_config;
 }
+#endif
 
 std::unique_ptr<rtclog::StreamConfig> CreateRtcLogStreamConfig(
     const AudioReceiveStream::Config& config) {
@@ -177,15 +181,18 @@ class Call final : public webrtc::Call,
   // Implements webrtc::Call.
   PacketReceiver* Receiver() override;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   webrtc::AudioSendStream* CreateAudioSendStream(
       const webrtc::AudioSendStream::Config& config) override;
   void DestroyAudioSendStream(webrtc::AudioSendStream* send_stream) override;
+#endif
 
   webrtc::AudioReceiveStream* CreateAudioReceiveStream(
       const webrtc::AudioReceiveStream::Config& config) override;
   void DestroyAudioReceiveStream(
       webrtc::AudioReceiveStream* receive_stream) override;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   webrtc::VideoSendStream* CreateVideoSendStream(
       webrtc::VideoSendStream::Config config,
       VideoEncoderConfig encoder_config) override;
@@ -194,6 +201,7 @@ class Call final : public webrtc::Call,
       VideoEncoderConfig encoder_config,
       std::unique_ptr<FecController> fec_controller) override;
   void DestroyVideoSendStream(webrtc::VideoSendStream* send_stream) override;
+#endif
 
   webrtc::VideoReceiveStream* CreateVideoReceiveStream(
       webrtc::VideoReceiveStream::Config configuration) override;
@@ -319,6 +327,7 @@ class Call final : public webrtc::Call,
   std::map<uint32_t, ReceiveRtpConfig> receive_rtp_config_
       RTC_GUARDED_BY(receive_crit_);
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   std::unique_ptr<RWLockWrapper> send_crit_;
   // Audio and Video send streams are owned by the client that creates them.
   std::map<uint32_t, AudioSendStream*> audio_send_ssrcs_
@@ -332,6 +341,7 @@ class Call final : public webrtc::Call,
       RTC_GUARDED_BY(configuration_sequence_checker_);
   RtpStateMap suspended_video_send_ssrcs_
       RTC_GUARDED_BY(configuration_sequence_checker_);
+#endif
 
   using RtpPayloadStateMap = std::map<uint32_t, RtpPayloadState>;
   RtpPayloadStateMap suspended_video_payload_states_
@@ -367,7 +377,9 @@ class Call final : public webrtc::Call,
 
   const std::unique_ptr<ReceiveTimeCalculator> receive_time_calculator_;
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   const std::unique_ptr<SendDelayStats> video_send_delay_stats_;
+#endif
   const int64_t start_ms_;
 
   // Caches transport_send_.get(), to avoid racing with destructor.
@@ -419,6 +431,7 @@ Call* Call::Create(const Call::Config& config,
       std::move(call_thread), config.task_queue_factory);
 }
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
 // This method here to avoid subclasses has to implement this method.
 // Call perf test will use Internal::Call::CreateVideoSendStream() to inject
 // FecController.
@@ -428,6 +441,7 @@ VideoSendStream* Call::CreateVideoSendStream(
     std::unique_ptr<FecController> fec_controller) {
   return nullptr;
 }
+#endif
 
 namespace internal {
 
@@ -447,7 +461,9 @@ Call::Call(Clock* clock,
       video_network_state_(kNetworkDown),
       aggregate_network_up_(false),
       receive_crit_(RWLockWrapper::CreateRWLock()),
+#ifdef WEBRTC_BUILD_SENDSTREAM
       send_crit_(RWLockWrapper::CreateRWLock()),
+#endif
       event_log_(config.event_log),
       received_bytes_per_second_counter_(clock_, nullptr, true),
       received_audio_bytes_per_second_counter_(clock_, nullptr, true),
@@ -460,7 +476,9 @@ Call::Call(Clock* clock,
       pacer_bitrate_kbps_counter_(clock_, nullptr, true),
       receive_side_cc_(clock_, transport_send->packet_router()),
       receive_time_calculator_(ReceiveTimeCalculator::CreateFromFieldTrial()),
+#ifdef WEBRTC_BUILD_SENDSTREAM
       video_send_delay_stats_(new SendDelayStats(clock_)),
+#endif
       start_ms_(clock_->TimeInMilliseconds()),
       transport_send_ptr_(transport_send.get()),
       transport_send_(std::move(transport_send)) {
@@ -478,11 +496,13 @@ Call::Call(Clock* clock,
 Call::~Call() {
   RTC_DCHECK_RUN_ON(&configuration_sequence_checker_);
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
   RTC_CHECK(audio_send_ssrcs_.empty());
   RTC_CHECK(video_send_ssrcs_.empty());
   RTC_CHECK(video_send_streams_.empty());
   RTC_CHECK(audio_receive_streams_.empty());
   RTC_CHECK(video_receive_streams_.empty());
+#endif
 
   module_process_thread_->Stop();
   module_process_thread_->DeRegisterModule(
@@ -607,6 +627,7 @@ PacketReceiver* Call::Receiver() {
   return this;
 }
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
 webrtc::AudioSendStream* Call::CreateAudioSendStream(
     const webrtc::AudioSendStream::Config& config) {
   TRACE_EVENT0("webrtc", "Call::CreateAudioSendStream");
@@ -674,6 +695,7 @@ void Call::DestroyAudioSendStream(webrtc::AudioSendStream* send_stream) {
   UpdateAggregateNetworkState();
   delete send_stream;
 }
+#endif
 
 webrtc::AudioReceiveStream* Call::CreateAudioReceiveStream(
     const webrtc::AudioReceiveStream::Config& config) {
@@ -695,11 +717,13 @@ webrtc::AudioReceiveStream* Call::CreateAudioReceiveStream(
     ConfigureSync(config.sync_group);
   }
   {
+#ifdef WEBRTC_BUILD_SENDSTREAM
     ReadLockScoped read_lock(*send_crit_);
     auto it = audio_send_ssrcs_.find(config.rtp.local_ssrc);
     if (it != audio_send_ssrcs_.end()) {
       receive_stream->AssociateSendStream(it->second);
     }
+#endif
   }
   UpdateAggregateNetworkState();
   return receive_stream;
@@ -732,6 +756,7 @@ void Call::DestroyAudioReceiveStream(
   delete audio_receive_stream;
 }
 
+#ifdef WEBRTC_BUILD_SENDSTREAM
 // This method can be used for Call tests with external fec controller factory.
 webrtc::VideoSendStream* Call::CreateVideoSendStream(
     webrtc::VideoSendStream::Config config,
@@ -825,6 +850,7 @@ void Call::DestroyVideoSendStream(webrtc::VideoSendStream* send_stream) {
   UpdateAggregateNetworkState();
   delete send_stream_impl;
 }
+#endif
 
 webrtc::VideoReceiveStream* Call::CreateVideoReceiveStream(
     webrtc::VideoReceiveStream::Config configuration) {
@@ -1013,10 +1039,12 @@ void Call::SignalChannelNetworkState(MediaType media, NetworkState state) {
 }
 
 void Call::OnAudioTransportOverheadChanged(int transport_overhead_per_packet) {
+#ifdef WEBRTC_BUILD_SENDSTREAM
   ReadLockScoped read_lock(*send_crit_);
   for (auto& kv : audio_send_ssrcs_) {
     kv.second->SetTransportOverhead(transport_overhead_per_packet);
   }
+#endif
 }
 
 void Call::UpdateAggregateNetworkState() {
@@ -1024,6 +1052,7 @@ void Call::UpdateAggregateNetworkState() {
 
   bool have_audio = false;
   bool have_video = false;
+#ifdef WEBRTC_BUILD_SENDSTREAM
   {
     ReadLockScoped read_lock(*send_crit_);
     if (!audio_send_ssrcs_.empty())
@@ -1031,6 +1060,7 @@ void Call::UpdateAggregateNetworkState() {
     if (!video_send_ssrcs_.empty())
       have_video = true;
   }
+#endif
   {
     ReadLockScoped read_lock(*receive_crit_);
     if (!audio_receive_streams_.empty())
@@ -1038,7 +1068,6 @@ void Call::UpdateAggregateNetworkState() {
     if (!video_receive_streams_.empty())
       have_video = true;
   }
-
   bool aggregate_network_up =
       ((have_video && video_network_state_ == kNetworkUp) ||
        (have_audio && audio_network_state_ == kNetworkUp));
@@ -1051,9 +1080,11 @@ void Call::UpdateAggregateNetworkState() {
 }
 
 void Call::OnSentPacket(const rtc::SentPacket& sent_packet) {
+#ifdef WEBRTC_BUILD_SENDSTREAM
   video_send_delay_stats_->OnSentPacket(sent_packet.packet_id,
                                         clock_->TimeInMilliseconds());
   transport_send_ptr_->OnSentPacket(sent_packet);
+#endif
 }
 
 void Call::OnStartRateUpdate(DataRate start_rate) {
@@ -1082,11 +1113,13 @@ void Call::OnTargetTransferRate(TargetTransferRate msg) {
     return;
   }
 
-  bool sending_video;
+  bool sending_video = false;
+#ifdef WEBRTC_BUILD_SENDSTREAM
   {
     ReadLockScoped read_lock(*send_crit_);
     sending_video = !video_send_streams_.empty();
   }
+#endif
 
   rtc::CritScope lock(&bitrate_crit_);
   if (!sending_video) {
@@ -1191,6 +1224,7 @@ PacketReceiver::DeliveryStatus Call::DeliverRtcp(MediaType media_type,
       rtcp_delivered = true;
     }
   }
+#ifdef WEBRTC_BUILD_SENDSTREAM
   if (media_type == MediaType::ANY || media_type == MediaType::VIDEO) {
     ReadLockScoped read_lock(*send_crit_);
     for (VideoSendStream* stream : video_send_streams_) {
@@ -1205,6 +1239,7 @@ PacketReceiver::DeliveryStatus Call::DeliverRtcp(MediaType media_type,
       rtcp_delivered = true;
     }
   }
+#endif
 
   if (rtcp_delivered) {
     event_log_->Log(std::make_unique<RtcEventRtcpPacketIncoming>(

@@ -20,8 +20,10 @@
 #include "modules/audio_processing/agc/agc_manager_direct.h"
 #include "modules/audio_processing/agc/gain_control.h"
 #include "modules/audio_processing/audio_buffer.h"
+#ifdef WEBRTC_BUILD_AP
 #include "modules/audio_processing/echo_cancellation_impl.h"
 #include "modules/audio_processing/echo_control_mobile_impl.h"
+#endif
 #include "modules/audio_processing/gain_control_for_experimental_agc.h"
 #include "modules/audio_processing/gain_control_impl.h"
 #include "modules/audio_processing/gain_controller2.h"
@@ -33,7 +35,9 @@
 #include "modules/audio_processing/level_estimator.h"
 #include "modules/audio_processing/ns/noise_suppressor.h"
 #include "modules/audio_processing/render_queue_item_verifier.h"
+#ifdef WEBRTC_BUILD_AP
 #include "modules/audio_processing/residual_echo_detector.h"
+#endif
 #include "modules/audio_processing/rms_level.h"
 #include "modules/audio_processing/transient/transient_suppressor.h"
 #include "modules/audio_processing/voice_detection.h"
@@ -57,8 +61,10 @@ class AudioProcessingImpl : public AudioProcessing {
   AudioProcessingImpl(const webrtc::Config& config,
                       std::unique_ptr<CustomProcessing> capture_post_processor,
                       std::unique_ptr<CustomProcessing> render_pre_processor,
+#ifdef WEBRTC_BUILD_AP
                       std::unique_ptr<EchoControlFactory> echo_control_factory,
                       rtc::scoped_refptr<EchoDetector> echo_detector,
+#endif
                       std::unique_ptr<CustomAudioAnalyzer> capture_analyzer);
   ~AudioProcessingImpl() override;
   int Initialize() override;
@@ -159,8 +165,10 @@ class AudioProcessingImpl : public AudioProcessing {
   RuntimeSettingEnqueuer capture_runtime_settings_enqueuer_;
   RuntimeSettingEnqueuer render_runtime_settings_enqueuer_;
 
+#ifdef WEBRTC_BUILD_AP
   // EchoControl factory.
   std::unique_ptr<EchoControlFactory> echo_control_factory_;
+#endif
 
   class SubmoduleStates {
    public:
@@ -228,8 +236,10 @@ class AudioProcessingImpl : public AudioProcessing {
       RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_render_, crit_capture_);
   int InitializeLocked(const ProcessingConfig& config)
       RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_render_, crit_capture_);
+#ifdef WEBRTC_BUILD_AP
   void InitializeResidualEchoDetector()
       RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_render_, crit_capture_);
+#endif
   void InitializeHighPassFilter() RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_capture_);
   void InitializeVoiceDetector() RTC_EXCLUSIVE_LOCKS_REQUIRED(crit_capture_);
   void InitializeEchoController()
@@ -328,9 +338,15 @@ class AudioProcessingImpl : public AudioProcessing {
   struct Submodules {
     Submodules(std::unique_ptr<CustomProcessing> capture_post_processor,
                std::unique_ptr<CustomProcessing> render_pre_processor,
+#ifdef WEBRTC_BUILD_AP
                rtc::scoped_refptr<EchoDetector> echo_detector,
+#endif
                std::unique_ptr<CustomAudioAnalyzer> capture_analyzer)
+#ifdef WEBRTC_BUILD_AP
         : echo_detector(std::move(echo_detector)),
+#else
+	:
+#endif
           capture_post_processor(std::move(capture_post_processor)),
           render_pre_processor(std::move(render_pre_processor)),
           capture_analyzer(std::move(capture_analyzer)) {}
@@ -341,10 +357,12 @@ class AudioProcessingImpl : public AudioProcessing {
         gain_control_for_experimental_agc;
     std::unique_ptr<GainController2> gain_controller2;
     std::unique_ptr<HighPassFilter> high_pass_filter;
+#ifdef WEBRTC_BUILD_AP
     rtc::scoped_refptr<EchoDetector> echo_detector;
     std::unique_ptr<EchoCancellationImpl> echo_cancellation;
     std::unique_ptr<EchoControl> echo_controller;
     std::unique_ptr<EchoControlMobileImpl> echo_control_mobile;
+#endif
     std::unique_ptr<NoiseSuppression> legacy_noise_suppressor;
     std::unique_ptr<NoiseSuppressor> noise_suppressor;
     std::unique_ptr<TransientSuppressor> transient_suppressor;
@@ -353,7 +371,9 @@ class AudioProcessingImpl : public AudioProcessing {
     std::unique_ptr<GainApplier> pre_amplifier;
     std::unique_ptr<CustomAudioAnalyzer> capture_analyzer;
     std::unique_ptr<LevelEstimator> output_level_estimator;
+#ifdef WEBRTC_BUILD_AP
     std::unique_ptr<VoiceDetection> voice_detector;
+#endif
   } submodules_;
 
   // State that is written to while holding both the render and capture locks

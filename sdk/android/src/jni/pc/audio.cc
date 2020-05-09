@@ -22,7 +22,11 @@ rtc::scoped_refptr<AudioDecoderFactory> CreateAudioDecoderFactory() {
 }
 
 rtc::scoped_refptr<AudioEncoderFactory> CreateAudioEncoderFactory() {
+#ifdef WEBRTC_BUILD_ENCODER
   return CreateBuiltinAudioEncoderFactory();
+#else
+  return NULL;
+#endif
 }
 
 rtc::scoped_refptr<AudioProcessing> CreateAudioProcessing() {

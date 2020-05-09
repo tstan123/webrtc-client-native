@@ -15,11 +15,15 @@
 #include "absl/types/variant.h"
 #include "modules/rtp_rtcp/source/rtp_format_h264.h"
 #include "modules/rtp_rtcp/source/rtp_format_video_generic.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/rtp_rtcp/source/rtp_format_vp8.h"
 #include "modules/rtp_rtcp/source/rtp_format_vp9.h"
+#endif
 #include "modules/video_coding/codecs/h264/include/h264_globals.h"
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
 #include "modules/video_coding/codecs/vp8/include/vp8_globals.h"
 #include "modules/video_coding/codecs/vp9/include/vp9_globals.h"
+#endif
 #include "rtc_base/checks.h"
 
 namespace webrtc {
@@ -44,6 +48,7 @@ std::unique_ptr<RtpPacketizer> RtpPacketizer::Create(
       return std::make_unique<RtpPacketizerH264>(
           payload, limits, h264.packetization_mode, *fragmentation);
     }
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8: {
       const auto& vp8 =
           absl::get<RTPVideoHeaderVP8>(rtp_video_header.video_type_header);
@@ -54,6 +59,7 @@ std::unique_ptr<RtpPacketizer> RtpPacketizer::Create(
           absl::get<RTPVideoHeaderVP9>(rtp_video_header.video_type_header);
       return std::make_unique<RtpPacketizerVp9>(payload, limits, vp9);
     }
+#endif
     default: {
       return std::make_unique<RtpPacketizerGeneric>(payload, limits,
                                                     rtp_video_header);
@@ -147,10 +153,12 @@ RtpDepacketizer* RtpDepacketizer::Create(absl::optional<VideoCodecType> type) {
   switch (*type) {
     case kVideoCodecH264:
       return new RtpDepacketizerH264();
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8:
       return new RtpDepacketizerVp8();
     case kVideoCodecVP9:
       return new RtpDepacketizerVp9();
+#endif
     default:
       return new RtpDepacketizerGeneric(/*generic_header_enabled=*/true);
   }

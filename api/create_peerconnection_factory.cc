@@ -31,7 +31,9 @@ rtc::scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
     rtc::Thread* worker_thread,
     rtc::Thread* signaling_thread,
     rtc::scoped_refptr<AudioDeviceModule> default_adm,
+#ifdef WEBRTC_BUILD_ENCODER
     rtc::scoped_refptr<AudioEncoderFactory> audio_encoder_factory,
+#endif
     rtc::scoped_refptr<AudioDecoderFactory> audio_decoder_factory,
     std::unique_ptr<VideoEncoderFactory> video_encoder_factory,
     std::unique_ptr<VideoDecoderFactory> video_decoder_factory,
@@ -49,7 +51,9 @@ rtc::scoped_refptr<PeerConnectionFactoryInterface> CreatePeerConnectionFactory(
   cricket::MediaEngineDependencies media_dependencies;
   media_dependencies.task_queue_factory = dependencies.task_queue_factory.get();
   media_dependencies.adm = std::move(default_adm);
+#ifdef WEBRTC_BUILD_ENCODER
   media_dependencies.audio_encoder_factory = std::move(audio_encoder_factory);
+#endif
   media_dependencies.audio_decoder_factory = std::move(audio_decoder_factory);
   if (audio_processing) {
     media_dependencies.audio_processing = std::move(audio_processing);

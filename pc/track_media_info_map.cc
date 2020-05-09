@@ -134,6 +134,7 @@ TrackMediaInfoMap::TrackMediaInfoMap(
   }
 
   if (voice_media_info_) {
+#ifdef WEBRTC_BUILD_SENDSTREAM
     for (auto& sender_info : voice_media_info_->senders) {
       AudioTrackInterface* associated_track =
           FindValueOrNull(local_audio_track_by_ssrc, sender_info.ssrc());
@@ -149,6 +150,7 @@ TrackMediaInfoMap::TrackMediaInfoMap(
           << "Duplicate voice sender SSRC: " << sender_info.ssrc();
       voice_info_by_sender_ssrc_[sender_info.ssrc()] = &sender_info;
     }
+#endif
     for (auto& receiver_info : voice_media_info_->receivers) {
       AudioTrackInterface* associated_track =
           FindValueOrNull(remote_audio_track_by_ssrc, receiver_info.ssrc());

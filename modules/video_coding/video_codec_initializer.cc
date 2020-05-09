@@ -145,6 +145,7 @@ VideoCodec VideoCodecInitializer::VideoEncoderConfigToVideoCodec(
     config.encoder_specific_settings->FillEncoderSpecificSettings(&video_codec);
 
   switch (video_codec.codecType) {
+#ifdef WEBRTC_BUILD_BUILTIN_CODEC
     case kVideoCodecVP8: {
       if (!config.encoder_specific_settings) {
         *video_codec.VP8() = VideoEncoder::GetDefaultVp8Settings();
@@ -226,6 +227,7 @@ VideoCodec VideoCodecInitializer::VideoEncoderConfigToVideoCodec(
 
       break;
     }
+#endif
     case kVideoCodecH264: {
       if (!config.encoder_specific_settings)
         *video_codec.H264() = VideoEncoder::GetDefaultH264Settings();
